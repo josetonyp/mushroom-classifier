@@ -62,12 +62,12 @@ class ImageDataSet:
         t["feature"] = X_train
         t["label"] = y_train  # to_categorical
         X_train = pd.DataFrame(t)
-        X_train["label"] = to_categorical(X_train.label)
+        X_train["label"] = X_train.label.astype("str")
         t = {}
         t["feature"] = X_valid
         t["label"] = y_valid  # to_categorical
         X_valid = pd.DataFrame(t)
-        X_valid["label"] = to_categorical(X_valid.label)
+        X_valid["label"] = X_valid.label.astype("str")
 
         return X_train, X_valid
 

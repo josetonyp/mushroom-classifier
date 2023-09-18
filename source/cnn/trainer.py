@@ -70,10 +70,6 @@ class Trainer(object):
         history = None
         train_batches = train_generator.n // self.batch_size + 1
 
-        import ipdb
-
-        ipdb.set_trace()
-
         history = self.model.fit(
             train_generator,
             steps_per_epoch=self.batch_size,
@@ -111,11 +107,11 @@ class Trainer(object):
 
     def __callbacks(self):
         early_stopping = EarlyStopping(
-            monitor="val_loss", min_delta=1e-3, patience=5, verbose=1, mode="min"
+            monitor="loss", min_delta=1e-3, patience=5, verbose=1, mode="min"
         )
 
         reduce_learning_rate = ReduceLROnPlateau(
-            monitor="val_loss",
+            monitor="loss",
             min_delta=1e-3,  # episilon= 0.001,
             patience=3,
             factor=0.1,
