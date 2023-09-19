@@ -19,7 +19,7 @@ class Factory:
                 return EfficientNetB1Base(file_size)
             case "efficientNetB5":
                 return EfficientNetB5Base(file_size)
-            case "efficientNetB5":
+            case "efficientNetB7":
                 return EfficientNetB7Base(file_size)
             case _:
                 raise ValueError("Please select an existing model")

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import joblib
+import json
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
@@ -91,6 +91,12 @@ class Trainer(object):
         self.model.save(f"{file}/model.keras")
 
         try:
+            self.logger.info(
+                f"Saving training history to file {file}/train_history.json"
+            )
+            with open(f"{file}/train_history.json", "w") as outfile:
+                json.dump(self.history.history, outfile)
+
             self.logger.info(
                 f"Saving training history to file {file}/train_history.csv"
             )
