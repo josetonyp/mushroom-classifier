@@ -5,16 +5,22 @@ from tensorflow.keras.models import Model, Sequential
 
 class AchB:
     def __init__(
-        self, base_model, output_n_class, optimizer="adam", compile_metrics=["accuracy"]
+        self,
+        base_model,
+        output_n_class,
+        optimizer="adam",
+        compile_metrics=["accuracy"],
+        file_size=(254, 254),
     ):
         self.base_model = base_model
         self.compile_optimizer = optimizer
         self.compile_metrics = compile_metrics
         self.n_class = output_n_class
+        self.file_size = file_size
 
-    def build(self, n_workers=-1):
+    def build(self):
         self.model = Sequential()
-        self.model.add(self.base_model.model())
+        self.model.add(self.base_model)
         self.model.add(GlobalAveragePooling2D())
         self.model.add(Dense(1024, activation="relu"))
         self.model.add(Dropout(rate=0.2))
