@@ -1,13 +1,18 @@
 #!./.venv/bin/python
 
-import click
+import click, os
 from datetime import datetime
-from source.cnn.image_dataset import ImageDataSet
 
-FILE_SIZE = (254, 254)
-SAMPLE_COUNT = 50
-BATCH_SIZE = 128
-LABEL_COUNT = 5
+
+# Example
+# --------
+#
+# FILE_SIZE=245,35 SAMPLE_COUNT=100 BATCH_SIZE=128 LABEL_COUNT=100 ./learning env
+#
+FILE_SIZE = tuple(os.getenv("FILE_SIZE", "254,254").split(","))
+SAMPLE_COUNT = os.getenv("SAMPLE_COUNT", 50)
+BATCH_SIZE = os.getenv("BATCH_SIZE", 32)
+LABEL_COUNT = os.getenv("PD_LABEL_COUNT", 5)
 
 
 def create_model_folder(model, name):
@@ -30,6 +35,15 @@ def create_model_folder(model, name):
 @click.group()
 def cli():
     pass
+
+
+@click.command()
+def env():
+    print(type(FILE_SIZE))
+    print(f"FILE_SIZE={FILE_SIZE}")
+    print(f"SAMPLE_COUNT={SAMPLE_COUNT}")
+    print(f"BATCH_SIZE={BATCH_SIZE}")
+    print(f"LABEL_COUNT={LABEL_COUNT}")
 
 
 @click.command()
@@ -248,6 +262,8 @@ cli.add_command(predict_folder)
 
 cli.add_command(train_dataset)
 cli.add_command(train_folder)
+
+cli.add_command(env)
 
 
 if __name__ == "__main__":
