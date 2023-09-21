@@ -1,16 +1,11 @@
 import pandas as pd
 import numpy as np
-import json
-
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report
+import json, math
 
 import tensorflow as tf
 
 tf.get_logger().setLevel("INFO")
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-
 from .training_history_image import TrainingHistoryImage
 from .callbacks.timing import TimingCallback
 
@@ -41,19 +36,7 @@ class Trainer(object):
         self.compile_metrics = compile_metrics
 
         self.preprocess_input_method = None
-
-        if logger == None:
-
-            class PLogger:
-                def info(self, text):
-                    self.logger.info(text)
-
-                def debug(self, text):
-                    self.logger.info(text)
-
-            self.logger = PLogger()
-        else:
-            self.logger = logger
+        self.logger = logger
 
     def train(self, train_generator, valid_generator):
         self.logger.info("-" * 80)
@@ -62,21 +45,22 @@ class Trainer(object):
         self.logger.info(f"Compiling with optimizer {self.compile_optimizer}")
         self.logger.info(f"Compiling in {self.batch_size} batch size")
         self.logger.info(
-            f"Compiling for {train_generator.n//self.batch_size + 1} epochs"
+            f"Compiling for {train_generator.n//self.batch_size + 1} steps_per_epoch"
         )
-        self.logger.info(f"Training with a dataframe of {train_generator.n}")
+        self.logger.info(f"Training with {train_generator.n} of images")
+        self.logger.info(f"Generator has {len(train_generator)} batches")
         self.logger.info("-" * 80)
 
         history = None
-        train_batches = train_generator.n // self.batch_size + 1
-
+        # The batch size determines how many of the images are shown per one step
+        # steps_per_epoch: Total number of steps (batches of samples) before declaring one epoch finished and starting the next epoch.
         history = self.model.fit(
             train_generator,
-            steps_per_epoch=self.batch_size,
-            epochs=train_batches,
+            steps_per_epoch=math.ceil(train_generator.n / self.batch_size),
+            epochs=8,
             workers=-1,
             validation_data=valid_generator,
-            validation_steps=self.batch_size,
+            validation_steps=math.ceil(valid_generator.n / self.batch_size),
             callbacks=self.__callbacks(),
         )
         self.logger.info(history)
@@ -84,32 +68,40 @@ class Trainer(object):
 
         return self
 
+    def history(self):
+        self.history
+
     def save(self, file):
         self.logger.info("-" * 80)
         self.logger.info("Saving Results")
-        self.logger.info(f"Saving model to file {file}/model.keras")
-        self.model.save(f"{file}/model.keras")
+        self.logger.info(f"Saving model to file file")
+        self.model.save(file)
 
+        # try:
+        #     self.logger.info(
+        #         f"Saving training history to file {folder}/train_history.csv"
+        #     )
+        #     pd.DataFrame(self.history.history).to_csv(f"{folder}/train_history.csv")
+
+        #     self.logger.info(f"Creating training image {folder}/train_history.jpg")
+        #     TrainingHistoryImage(f"{folder}/train_history.csv").render().save(
+        #         f"{folder}/train_history.jpg"
+        #     )
+        # except Exception as e:
+        #     self.logger.info(e)
+        #     pass
+        # self.logger.info("-" * 80)
+
+    def history(self, file):
         try:
-            self.logger.info(
-                f"Saving training history to file {file}/train_history.json"
-            )
-            with open(f"{file}/train_history.json", "w") as outfile:
+            self.logger.info(f"Saving training history to file {file}")
+            with open(file, "w") as outfile:
                 json.dump(self.history.history, outfile)
-
-            self.logger.info(
-                f"Saving training history to file {file}/train_history.csv"
-            )
-            pd.DataFrame(self.history.history).to_csv(f"{file}/train_history.csv")
-
-            self.logger.info(f"Creating training image {file}/train_history.jpg")
-            TrainingHistoryImage(f"{file}/train_history.csv").render().save(
-                f"{file}/train_history.jpg"
-            )
         except Exception as e:
             self.logger.info(e)
+            self.logger.info("Histtory:")
+            self.logger.info(json.dumps(self.history.history))
             pass
-        self.logger.info("-" * 80)
 
     def __callbacks(self):
         early_stopping = EarlyStopping(

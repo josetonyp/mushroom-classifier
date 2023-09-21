@@ -7,19 +7,19 @@ from .vgg19_base import VGG19Base
 
 
 class Factory:
-    def build(base, file_size):
+    def build(base, file_size, base_layer_train=0):
         match base:
             case "vgg16":
-                return VGG16Base(file_size)
+                return VGG16Base(file_size, base_layer_train=base_layer_train)
             case "vgg19":
-                return VGG19Base(file_size)
+                return VGG19Base(file_size, base_layer_train=base_layer_train)
             case "resnet50":
-                return ResNet50Base(file_size)
+                return ResNet50Base(file_size, base_layer_train=base_layer_train)
             case "efficientNetB1":
-                return EfficientNetB1Base(file_size)
+                return EfficientNetB1Base(file_size, base_layer_train=base_layer_train)
             case "efficientNetB5":
-                return EfficientNetB5Base(file_size)
+                return EfficientNetB5Base(file_size, base_layer_train=base_layer_train)
             case "efficientNetB7":
-                return EfficientNetB7Base(file_size)
+                return EfficientNetB7Base(file_size, base_layer_train=base_layer_train)
             case _:
                 raise ValueError("Please select an existing model")

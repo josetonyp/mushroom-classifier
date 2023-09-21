@@ -1,15 +1,11 @@
-import pandas as pd
+import json
 import numpy as np
-import argparse
-import joblib
 
-from dask.distributed import Client, progress
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
-
 from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications.vgg16 import preprocess_input
+import tensorflow as tf
+
+tf.get_logger().setLevel("INFO")
 
 
 class Predictor:
@@ -26,19 +22,29 @@ class Predictor:
 
     def predict(self, generator):
         self.generator = generator
+        steps = (generator.n // self.batch_size) + 1
+
         print("-" * 80)
-        print(f"Predicting with a dataframe of {generator.n}")
+        print(f"Predicting with {generator.n} images")
+        print(f"Predicting in {steps} steps")
         print("-" * 80)
 
-        predictions = []
+        predictions = self.model.predict(self.generator, verbose=True, steps=steps)
 
-        predictions = self.model.predict(
-            self.generator, workers=-1, verbose=True, steps=self.batch_size
-        )
         self.predictions = np.argmax(predictions, axis=1)
 
-    def classification_report(self):
-        return classification_report(self.generator.labels, self.predictions)
+    def classification_report(self, to_file=None):
+        report = classification_report(self.generator.labels, self.predictions)
 
-    def confusion_matrix(self):
-        return confusion_matrix(self.generator.labels, self.predictions)
+        if to_file != None and type(to_file) == type(""):
+            open(to_file, "w").write(report)
+
+        return report
+
+    def confusion_matrix(self, to_file=None):
+        matrix = confusion_matrix(self.generator.labels, self.predictions)
+
+        if to_file != None and type(to_file) == type(""):
+            open(to_file, "w").write(json.dumps({"matrix": matrix.tolist()}))
+
+        return matrix
