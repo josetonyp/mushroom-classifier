@@ -11,7 +11,7 @@ class FolderGenerator:
         folder,
         target_size=(150, 150),
         batch_size=32,
-        class_mode="binary",
+        class_mode="sparse",
     ):
         match (data_source):
             case ("train"):
@@ -20,6 +20,8 @@ class FolderGenerator:
                     target_size=target_size,
                     batch_size=batch_size,
                     class_mode=class_mode,
+                    interpolation="bicubic",
+                    shuffle=True,
                 )
             case ("valid"):
                 return self.__test_generator().flow_from_directory(
@@ -27,17 +29,21 @@ class FolderGenerator:
                     target_size=target_size,
                     batch_size=batch_size,
                     class_mode=class_mode,
+                    interpolation="bicubic",
+                    shuffle=True,
                 )
 
     def __train_generator(self):
         return ImageDataGenerator(
             preprocessing_function=self.preprocess_input_method,
-            rotation_range=10,
-            width_shift_range=0.1,
-            height_shift_range=0.1,
-            zoom_range=1.1,
+            rotation_range=5,
+            zoom_range=[0.95, 1.05],
             horizontal_flip=True,
+            dtype=int,
         )
 
     def __test_generator(self):
-        return ImageDataGenerator(preprocessing_function=self.preprocess_input_method)
+        return ImageDataGenerator(
+            preprocessing_function=self.preprocess_input_method,
+            dtype=int,
+        )
