@@ -4,6 +4,7 @@ from .efficient_net_b7_base import EfficientNetB7Base
 from .resnet50_base import ResNet50Base
 from .vgg16_base import VGG16Base
 from .vgg19_base import VGG19Base
+from .empty import EmptyBase
 
 
 class Factory:
@@ -21,5 +22,7 @@ class Factory:
                 return EfficientNetB5Base(file_size, base_layer_train=base_layer_train)
             case "efficientNetB7":
                 return EfficientNetB7Base(file_size, base_layer_train=base_layer_train)
+            case "empty":
+                return EmptyBase(file_size, base_layer_train=base_layer_train)
             case _:
                 raise ValueError("Please select an existing model")
