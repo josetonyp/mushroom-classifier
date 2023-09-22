@@ -101,3 +101,58 @@ class ImageFolderGenerator:
     def load_and_resize_image(self, filepath, filse_size=(256, 256)):
         im = self.load_image(filepath)
         return resize(im, filse_size)
+
+
+class DataSetFolderGenerator:
+    def __init__(self, preprocess_input_method=None):
+        self.preprocess_input_method = preprocess_input_method
+
+    def generator(
+        self,
+        data_source,
+        df,
+        target_size=(150, 150),
+        batch_size=32,
+        class_mode="binary",
+        feature_name="filepath",
+        label_name="label",
+    ):
+        ## Remove images that have internal errors
+        bads = []
+        print("Searching for broken or unexisting JPG Images")
+        for filepath in tqdm(df[feature_name]):
+            try:
+                image = JPEGInspector(filepath)
+                image.decode()
+            except:
+                bads.append(filepath)
+
+        if bads != []:
+            print("Removing the following images from the dataset")
+            for bad in bads:
+                print(f"- {bad}")
+                df.drop(df.loc[df[feature_name] == bad].index, inplace=True)
+
+        dataset_train = tensorflow.data.Dataset.from_tensor_slices(
+            (df[feature_name], df.label)
+        )
+
+        dataset_train = dataset_train.map(
+            lambda x, y: [self.load_and_resize_image(x, filse_size=target_size), y],
+            num_parallel_calls=-1,
+        ).batch(batch_size)
+
+        dataset_train.n = df.shape[0]
+        dataset_train.labels = df.label
+
+        return dataset_train
+
+    @tensorflow.function
+    def load_image(self, filepath):
+        im = read_file(filepath)
+        return decode_jpeg(im, channels=3)
+
+    @tensorflow.function
+    def load_and_resize_image(self, filepath, filse_size=(256, 256)):
+        im = self.load_image(filepath)
+        return resize(im, filse_size)

@@ -20,6 +20,7 @@ class Trainer(object):
         logger=None,
         label_feature="label",
         image_feature="image_lien",
+        epochs=8,
     ):
         ### Variables
         self.model = model
@@ -36,6 +37,7 @@ class Trainer(object):
 
         self.preprocess_input_method = None
         self.logger = logger
+        self.epochs = epochs
 
     def train(self, train_generator, valid_generator):
         self.logger.info("-" * 80)
@@ -56,7 +58,7 @@ class Trainer(object):
         history = self.model.fit(
             train_generator,
             steps_per_epoch=math.ceil(train_generator.n / self.batch_size),
-            epochs=8,
+            epochs=self.epochs,
             workers=-1,
             validation_data=valid_generator,
             validation_steps=math.ceil(valid_generator.n / self.batch_size),

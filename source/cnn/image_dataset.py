@@ -8,26 +8,44 @@ from keras.utils import to_categorical
 class ImageDataSet:
     """Loads, process, filter and manage a DataSet in order to prepare it for training or prediction"""
 
-    def __init__(self, filename, image_feature, label_feature, sample_count=None):
+    def __init__(
+        self,
+        filename,
+        image_feature,
+        label_feature,
+        image_folder="",
+        sample_count=None,
+    ):
         self.filename = filename
         self.image_feature = image_feature
         self.label_feature = label_feature
         self.sample_count = sample_count
+        self.image_folder = image_folder
 
     def load(self):
         """Loads and extracts the image files and labels"""
-        df = pd.read_csv(self.filename)
+        df = pd.read_csv(self.filename, low_memory=False)
+
         self.df = pd.DataFrame(
             {
                 "feature": df[self.image_feature],
                 "label": df[self.label_feature],
             }
         )
+
+        if self.image_folder != "":
+            self.df["feature"] = self.df.feature.apply(
+                lambda x: f"{self.image_folder}/{x}"
+            )
+
         return self
 
     def find_n_top_labels(self, n_class=5):
         top_counts = self.df["label"].value_counts()[:n_class].index
         self.df = self.df[self.df["label"].isin(list(top_counts))]
+
+        # Recotegorize the labels for training
+        self.df["label"] = pd.factorize(self.df["label"])[0]
 
         return self
 
@@ -50,26 +68,37 @@ class ImageDataSet:
 
         return self.df
 
-    def split_sample(self, test_size=0.2):
-        X_train, X_valid, y_train, y_valid = train_test_split(
+    def split_sample(self, valid_size=0.2, test_size=0.2):
+        X_train, X_test, y_train, y_test = train_test_split(
             self.df["feature"],
             self.df["label"],
             stratify=self.df["label"],
             test_size=test_size,
         )
 
+        X_train, X_valid, y_train, y_valid = train_test_split(
+            X_train,
+            y_train,
+            stratify=y_train,
+            test_size=valid_size,
+        )
+
         t = {}
         t["feature"] = X_train
         t["label"] = y_train  # to_categorical
         X_train = pd.DataFrame(t)
-        X_train["label"] = X_train.label.astype("str")
+
         t = {}
         t["feature"] = X_valid
         t["label"] = y_valid  # to_categorical
         X_valid = pd.DataFrame(t)
-        X_valid["label"] = X_valid.label.astype("str")
 
-        return X_train, X_valid
+        t = {}
+        t["feature"] = X_test
+        t["label"] = y_test  # to_categorical
+        X_test = pd.DataFrame(t)
+
+        return X_train, X_valid, X_test
 
     def build_folder(self, images_folder, images_folder_target):
         if not os.path.exists(images_folder_target):

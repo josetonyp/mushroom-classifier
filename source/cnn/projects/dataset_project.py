@@ -7,10 +7,12 @@ from PIL import ImageFile
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+import pandas as pd
+
 from source.cnn.architectures.factory import Factory as ArchFactory
 from source.cnn.bases.factory import Factory as BaseModelFactory
 from source.cnn.generators.folder_generator import FolderGenerator
-from source.cnn.generators.image_folder_generator import ImageFolderGenerator
+from source.cnn.generators.image_folder_generator import DataSetFolderGenerator
 
 from source.cnn.trainer import Trainer
 from source.cnn.predictor import Predictor
@@ -46,7 +48,7 @@ class Training:
         """
         self.logger.info(f"Training with Architecture {architecture}")
         self.logger.info(f"Training Base layers {base_layer_train} onwards")
-        self.logger.info(f"Training with Generator ImageFolderGenerator")
+        self.logger.info(f"Training with Generator DataSetFolderGenerator")
 
         # The relationship between Base and Architecture requires a joined factory.
         # There are Model Architectures that have a base for transferred learning
@@ -65,26 +67,32 @@ class Training:
             base_layer_train=base_layer_train,
         )
 
+        print("Loading Base Model and Architecture")
         self.model = ArchFactory.build(architecture)(
             self.base.model(), self.project.n_class, file_size=self.project.file_size
         ).build()
         self.logger.info(self.model.summary(print_fn=lambda x: self.logger.info(x)))
 
+        train, valid, _ = self.project.training_set
+
+        print("Loading Image Data Generators")
         # Build the data generators. This area can also be extended as there are a few possible options
         # to load data into the model for training puporse
         #
-        gen = ImageFolderGenerator(self.base.preprocess_input_method())
+        gen = DataSetFolderGenerator(self.base.preprocess_input_method())
         train_generator = gen.generator(
             "train",
-            f"{self.project.images_folder}/train",
+            train,
             target_size=self.project.file_size,
             batch_size=self.project.batch_size,
+            feature_name="feature",
         )
         valid_generator = gen.generator(
             "valid",
-            f"{self.project.images_folder}/valid",
+            valid,
             target_size=self.project.file_size,
             batch_size=self.project.batch_size,
+            feature_name="feature",
         )
 
         self.trainer = Trainer(
@@ -108,7 +116,7 @@ class Training:
 
     def predict(self):
         self.base = BaseModelFactory.build(self.base_model_name, self.project.file_size)
-        gen = ImageFolderGenerator(self.base.preprocess_input_method())
+        gen = DataSetFolderGenerator(self.base.preprocess_input_method())
         generator = gen.generator(
             "valid",
             f"{self.project.images_folder}/test",
@@ -148,10 +156,11 @@ class Training:
         return self
 
 
-class ImageProject:
+class Project:
     def __init__(
         self,
         name,
+        training_set,
         images_folder,
         base_models_folder="models",
         file_size=(254, 254),
@@ -160,60 +169,23 @@ class ImageProject:
         epochs=8,
     ):
         self.name = name
-        self.models_folder = f"{base_models_folder}/{name}"
+        self.training_set = training_set
         self.images_folder = images_folder
         self.file_size = file_size
         self.batch_size = batch_size
         self.architecture = architecture
+        self.models_folder = base_models_folder
         self.epochs = epochs
 
         if not exists(self.models_folder):
             makedirs(self.models_folder)
 
-        if (
-            not exists(f"{self.images_folder}/train")
-            or not exists(f"{self.images_folder}/test")
-            or not exists(f"{self.images_folder}/valid")
-        ):
-            raise ValueError(
-                f"Invalid {self.images_folder} configuration. Separete images into train, valid and test subfolders"
-            )
+        t, _, _ = self.training_set
 
-        train_n_class = len(glob(f"{self.images_folder}/train/*"))
-        test_n_class = len(glob(f"{self.images_folder}/test/*"))
-        valid_n_class = len(glob(f"{self.images_folder}/valid/*"))
-
-        if (
-            train_n_class != test_n_class
-            or valid_n_class != test_n_class
-            or train_n_class != valid_n_class
-        ):
-            raise ValueError(
-                f"Invalid number of classes per folder train: {train_n_class} test: {test_n_class} valid: {valid_n_class}"
-            )
-        self.n_class = train_n_class
+        self.n_class = len(t.label.unique())
 
     def document(self):
-        for folder in glob(f"{self.images_folder}/train/*"):
-            label = folder.split("/")[-1]
-
-            CollectionFromFolder(folder).render().save(
-                f"{self.models_folder}/{label}_sample_training_collection.jpg"
-            )
-
-        for folder in glob(f"{self.images_folder}/test/*"):
-            label = folder.split("/")[-1]
-
-            CollectionFromFolder(folder).render().save(
-                f"{self.models_folder}/{label}_sample_test_collection.jpg"
-            )
-
-        for folder in glob(f"{self.images_folder}/valid/*"):
-            label = folder.split("/")[-1]
-
-            CollectionFromFolder(folder).render().save(
-                f"{self.models_folder}/{label}_sample_valid_collection.jpg"
-            )
+        pass
 
     def train(self, bases=[], base_layer_train=0):
         for base in bases:
@@ -225,7 +197,6 @@ class ImageProject:
                 f"{self.models_folder}/{self.architecture}/{base}/{version}"
             )
             makedirs(training_folder)
-
             Training(self, base, training_folder).train(
                 architecture=self.architecture, base_layer_train=base_layer_train
             ).predict()

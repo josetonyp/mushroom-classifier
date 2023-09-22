@@ -13,6 +13,7 @@ FILE_SIZE = tuple(map(int, os.getenv("FILE_SIZE", "254,254").split(",")))
 SAMPLE_COUNT = int(os.getenv("SAMPLE_COUNT", 50))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
 LABEL_COUNT = int(os.getenv("PD_LABEL_COUNT", 5))
+EPOCHS = int(os.getenv("EPOCHS", 8))
 
 
 @click.group()
@@ -27,107 +28,7 @@ def env():
     print(f"SAMPLE_COUNT={SAMPLE_COUNT}")
     print(f"BATCH_SIZE={BATCH_SIZE}")
     print(f"LABEL_COUNT={LABEL_COUNT}")
-
-
-@click.command()
-@click.option("--folder_name", required=True)
-@click.option("--model_file", required=True)
-def predict_folder(folder_name, model_file):
-    """
-    Predicts the labels of a image set given a dataframe
-    
-    Example
-    -------
-    ./learning predict-folder \
-        --folder_name flower_photos \
-        --model_file models/flowers_photos/vgg19/20230918180525_folder_vgg19/model.keras
-    """
-    from source.cnn.generators.folder_generator import FolderGenerator
-    from source.cnn.bases.factory import Factory
-    from source.cnn.predictor import Predictor
-    from source.cnn.graphics.confussion_matrix import ConfusionMatrix
-    from source.cnn.graphics.classification_report import ClassificationReport
-    import json, re
-
-    r = model_file.split("/")
-    model_name = r[1]
-    model_folder = "/".join(r[:-1])
-    version = re.findall("\d+", r[2])[0]
-
-    base = Factory.build(model_name, FILE_SIZE)
-
-    gen = FolderGenerator(base.preprocess_input_method())
-    generator = gen.generator(
-        "valid",
-        f"{folder_name}/test",
-        target_size=FILE_SIZE,
-        batch_size=BATCH_SIZE,
-    )
-
-    pred = Predictor(
-        n_class=LABEL_COUNT,
-        batch_size=BATCH_SIZE,
-        target_file_size_shape=FILE_SIZE,
-    )
-    pred.load(model_file)
-    pred.predict(generator)
-
-    pred.classification_report(to_file=f"{model_folder}/classification_report.txt")
-    pred.confusion_matrix(to_file=f"{model_folder}/confusion_matrix.json")
-
-    ClassificationReport(
-        open(f"{model_folder}/classification_report.txt", "r").read(),
-        model_name,
-        subtitle=f"Project Flowers Photos version {version}",
-    ).render().save(f"{model_folder}/classification_report.jpg")
-
-    f = open(f"{model_folder}/confusion_matrix.json", "r").read()
-
-    ConfusionMatrix(
-        json.loads(f)["matrix"],
-        model_name,
-        subtitle=f"Project Flowers Photos version {version}",
-    ).render().save(f"{model_folder}/confusion_matrix.jpg")
-
-
-@click.command()
-@click.option("--dataframe", required=True)
-@click.option("--model_file", required=True)
-def predict_dataset(dataframe, model_file):
-    """
-    Predicts the labels of a image set given a dataframe
-    """
-    from source.cnn.generators.folder_generator import DataSetGenerator
-    from source.cnn.bases.factory import Factory
-    from source.cnn.predictor import Predictor
-
-    base = Factory.build(model_name, FILE_SIZE)
-
-    dataset = ImageDataSet(dataframe, "image_lien", "label", sample_count=SAMPLE_COUNT)
-    dataset.load()
-    dataset.find_n_top_labels(LABEL_COUNT)
-    dataset.downsample_to_equal()
-    _, test = dataset.split_sample(0.2)
-
-    gen = DataSetGenerator(base.preprocess_input_method())
-    generator = gen.generator(
-        "test",
-        test,
-        "input/images",
-        target_size=FILE_SIZE,
-        batch_size=BATCH_SIZE,
-    )
-
-    pred = Predictor(
-        n_class=LABEL_COUNT,
-        batch_size=BATCH_SIZE,
-        target_file_size_shape=FILE_SIZE,
-    )
-    pred.load(model_file)
-    pred.predict(generator)
-
-    print(pred.classification_report())
-    print(pred.confusion_matrix())
+    print(f"EPOCHS={EPOCHS}")
 
 
 @click.command()
@@ -146,7 +47,7 @@ def train_folder(folder_name, model_name, architecture="a"):
         model_name (str): base model name Ex: 'vgg16'
         architecture (str): CNN Architecture to run the training. (a, b or c)
     """
-    from source.cnn.project import ImageProject, Training
+    from source.cnn.project import ImageProject
 
     if model_name == "all":
         model_name = [
@@ -169,6 +70,7 @@ def train_folder(folder_name, model_name, architecture="a"):
         file_size=FILE_SIZE,
         batch_size=BATCH_SIZE,
         architecture=architecture,
+        epochs=EPOCHS,
     )
     for modeln in model_name:
         project.create_model_folder(folder_name.split("/")[-1], architecture, modeln)
@@ -176,71 +78,75 @@ def train_folder(folder_name, model_name, architecture="a"):
 
 
 @click.command()
-@click.option("--dataframe", required=True)
+@click.option("--name", required=True)
+@click.option("--dataframe_file", required=True)
+@click.option("--images_folder", required=True)
 @click.option("--model_name", required=True)
-def train_dataset(dataframe, model_name):
-    from dask.distributed import Client, progress
-    import joblib
+@click.option("--architecture", required=False)
+def train_dataset(name, dataframe_file, images_folder, model_name, architecture="a"):
+    """_summary_
 
-    from source.logger import Logger as CNNLogger
-    from source.cnn.architectures.ach_a import AchA as Architecture
-    from source.cnn.bases.factory import Factory
-    from source.cnn.generators.dataset_generator import DataSetGenerator
-    from source.cnn.trainer import Trainer
+    Example:
+    --------
+    > ./learning train-dataset \
+            --name=mushrooms \
+            --dataframe_file=input/old_pd_files/observations_mushroom_pred_manual_cat_filter.csv \
+            --images_folder=input/images \
+            --model_name=vgg16 \
+            --architecture=a
 
-    model_output = create_model_folder(
-        model_name, f"{datetime.now().strftime('%Y%m%d%H%M%S')}_df_{model_name}"
+    Args:
+        name (_type_): _description_
+        dataframe_file (_type_): _description_
+        images_folder (_type_): _description_
+        model_name (_type_): _description_
+        architecture (str, optional): _description_. Defaults to "a".
+    """
+    from source.cnn.projects.dataset_project import Project
+    from source.cnn.image_dataset import ImageDataSet
+
+    if model_name == "all":
+        model_name = [
+            "vgg16",
+            "vgg19",
+            "resnet50",
+            "efficientNetB1",
+            "efficientNetB5",
+            "efficientNetB7",
+        ]
+    else:
+        model_name = [model_name]
+
+    if architecture == None:
+        architecture = "a"
+    dataset = ImageDataSet(
+        dataframe_file,
+        "image_lien",
+        "label_id",
+        image_folder=images_folder,
+        sample_count=SAMPLE_COUNT,
     )
-
-    output_report = f"{model_output}/report.txt"
-
-    logger = (
-        CNNLogger(output_report, logger_name="CNN Images by Dataset")
-    ).get_logger()
-
-    logger.info("Creating an instance of CNN Logger\n\n")
-    base = Factory.build(model_name, FILE_SIZE)
-    model = Architecture(base.model(), LABEL_COUNT).build()
-    logger.info(model.summary(print_fn=lambda x: logger.info(x)))
-
-    dataset = ImageDataSet(dataframe, "image_lien", "label", sample_count=SAMPLE_COUNT)
     dataset.load()
     dataset.find_n_top_labels(LABEL_COUNT)
-    dataset.downsample_to_equal()
-    train, valid = dataset.split_sample(0.2)
+    train, valid, test = dataset.split_sample()
 
-    gen = DataSetGenerator(base.preprocess_input_method())
-    train_generator = gen.generator(
-        "train",
-        train,
-        "input/images",
-        target_size=FILE_SIZE,
+    project = Project(
+        name,
+        (train, valid, test),
+        images_folder,
+        file_size=FILE_SIZE,
         batch_size=BATCH_SIZE,
+        architecture=architecture,
+        epochs=EPOCHS,
     )
-    valid_generator = gen.generator(
-        "valid",
-        valid,
-        "input/images",
-        target_size=FILE_SIZE,
-        batch_size=BATCH_SIZE,
-    )
+    for modeln in model_name:
+        project.create_model_folder(name, architecture, modeln)
+    project.train(model_name)
 
-    client = Client(threads_per_worker=4, n_workers=4)
+    # from dask.distributed import Client, progress
+    # import joblib
+    # with joblib.parallel_backend("dask"):
 
-    trainer = Trainer(
-        model,
-        n_class=LABEL_COUNT,
-        batch_size=BATCH_SIZE,
-        target_file_size_shape=FILE_SIZE,
-        logger=logger,
-    )
-    with joblib.parallel_backend("dask"):
-        trainer.train(train_generator, valid_generator)
-    trainer.save(model_output)
-
-
-cli.add_command(predict_dataset)
-cli.add_command(predict_folder)
 
 cli.add_command(train_dataset)
 cli.add_command(train_folder)
