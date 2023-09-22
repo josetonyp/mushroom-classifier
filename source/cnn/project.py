@@ -139,7 +139,7 @@ class Training:
         ).render().save(f"{self.project_folder}/confusion_matrix.jpg")
 
         ClassificationReport(
-            predictor.cnf_matrix,
+            predictor.class_report,
             self.base_model_name,
             subtitle=f"{self.project.name} with architecture {self.project.architecture}",
         ).render().save(f"{self.project_folder}/classification_report.jpg")
