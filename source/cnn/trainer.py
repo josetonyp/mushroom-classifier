@@ -6,7 +6,6 @@ import tensorflow as tf
 
 tf.get_logger().setLevel("INFO")
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from .training_history_image import TrainingHistoryImage
 from .callbacks.timing import TimingCallback
 
 
@@ -63,13 +62,11 @@ class Trainer(object):
             validation_steps=math.ceil(valid_generator.n / self.batch_size),
             callbacks=self.__callbacks(),
         )
+
         self.logger.info(history)
         self.history = history
 
         return self
-
-    def history(self):
-        self.history
 
     def save(self, file):
         self.logger.info("-" * 80)
@@ -77,31 +74,8 @@ class Trainer(object):
         self.logger.info(f"Saving model to file file")
         self.model.save(file)
 
-        # try:
-        #     self.logger.info(
-        #         f"Saving training history to file {folder}/train_history.csv"
-        #     )
-        #     pd.DataFrame(self.history.history).to_csv(f"{folder}/train_history.csv")
-
-        #     self.logger.info(f"Creating training image {folder}/train_history.jpg")
-        #     TrainingHistoryImage(f"{folder}/train_history.csv").render().save(
-        #         f"{folder}/train_history.jpg"
-        #     )
-        # except Exception as e:
-        #     self.logger.info(e)
-        #     pass
-        # self.logger.info("-" * 80)
-
-    def history(self, file):
-        try:
-            self.logger.info(f"Saving training history to file {file}")
-            with open(file, "w") as outfile:
-                json.dump(self.history.history, outfile)
-        except Exception as e:
-            self.logger.info(e)
-            self.logger.info("Histtory:")
-            self.logger.info(json.dumps(self.history.history))
-            pass
+    def save_history(self, file):
+        pd.DataFrame(self.history.history).to_csv(file)
 
     def __callbacks(self):
         early_stopping = EarlyStopping(

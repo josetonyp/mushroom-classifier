@@ -34,17 +34,19 @@ class Predictor:
         self.predictions = np.argmax(predictions, axis=1)
 
     def classification_report(self, to_file=None):
-        report = classification_report(self.generator.labels, self.predictions)
+        self.class_report = classification_report(
+            self.generator.labels, self.predictions
+        )
 
         if to_file != None and type(to_file) == type(""):
-            open(to_file, "w").write(report)
+            open(to_file, "w").write(self.class_report)
 
-        return report
+        return self.class_report
 
     def confusion_matrix(self, to_file=None):
-        matrix = confusion_matrix(self.generator.labels, self.predictions)
+        self.cnf_matrix = confusion_matrix(self.generator.labels, self.predictions)
 
         if to_file != None and type(to_file) == type(""):
-            open(to_file, "w").write(json.dumps({"matrix": matrix.tolist()}))
+            open(to_file, "w").write(json.dumps({"matrix": self.cnf_matrix.tolist()}))
 
-        return matrix
+        return self.cnf_matrix
