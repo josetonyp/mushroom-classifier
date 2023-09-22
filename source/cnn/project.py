@@ -17,6 +17,9 @@ from source.cnn.predictor import Predictor
 from source.logger import Logger as CNNLogger
 
 from source.datasets.images.render_collections import CollectionFromFolder
+from source.cnn.graphics.training_history_image import TrainingHistoryImage
+from source.cnn.graphics.confussion_matrix import ConfusionMatrix
+from source.cnn.graphics.classification_report import ClassificationReport
 
 
 class Training:
@@ -32,21 +35,44 @@ class Training:
         ).get_logger()
 
     def train(self, architecture="a", base_layer_train=0):
+        """Selects, builds and train a model based on a selected Architecture
+
+        Args:
+            architecture (str, optional): CNN Model Architecture. Defaults to "a".
+            base_layer_train (int, optional): Base layers to be trained. Defaults to 0.
+
+        Returns:
+            _type_: _description_
+        """
+        self.logger.info(f"Training with Architecture {architecture}")
+        self.logger.info(f"Training Base layers {base_layer_train} onwards")
+        self.logger.info(f"Training with Generator ImageFolderGenerator")
+
+        # The relationship between Base and Architecture requires a joined factory.
+        # There are Model Architectures that have a base for transferred learning
+        # and there are Model Architecture that are build from scratch which use no other
+        # pretrained model in their base
+        #
+        # Here, I seed the idea of selecting a base depending on the architecture but this
+        # would require encapsulation further down the delopment
+        #
+        if architecture not in ["a", "b"]:
+            self.base_model_name = "empty"
+
         self.base = BaseModelFactory.build(
             self.base_model_name,
             self.project.file_size,
             base_layer_train=base_layer_train,
         )
 
-        self.logger.info(f"Training with Architecture {architecture}")
-        self.logger.info(f"Training Base layers {base_layer_train} onwards")
-        self.logger.info(f"Training with Generator ImageFolderGenerator")
-
         self.model = ArchFactory.build(architecture)(
             self.base.model(), self.project.n_class, file_size=self.project.file_size
         ).build()
         self.logger.info(self.model.summary(print_fn=lambda x: self.logger.info(x)))
 
+        # Build the data generators. This area can also be extended as there are a few possible options
+        # to load data into the model for training puporse
+        #
         gen = ImageFolderGenerator(self.base.preprocess_input_method())
         train_generator = gen.generator(
             "train",
@@ -71,7 +97,12 @@ class Training:
 
         self.trainer.train(train_generator, valid_generator)
         self.trainer.save(f"{self.project_folder}/model.keras")
-        # self.trainer.history(f"{self.project_folder}/history.json")
+        self.trainer.save_history(f"{self.project_folder}/history.csv")
+
+        TrainingHistoryImage(f"{self.project_folder}/history.csv").render().save(
+            f"{self.project_folder}/train_history.jpg"
+        )
+
         return self
 
     def predict(self):
@@ -100,6 +131,19 @@ class Training:
         predictor.confusion_matrix(
             to_file=f"{self.project_folder}/confusion_matrix.json"
         )
+
+        ConfusionMatrix(
+            predictor.cnf_matrix,
+            self.base_model_name,
+            subtitle=f"{self.project.name} with architecture {self.project.architecture}",
+        ).render().save(f"{self.project_folder}/confusion_matrix.jpg")
+
+        ClassificationReport(
+            predictor.cnf_matrix,
+            self.base_model_name,
+            subtitle=f"{self.project.name} with architecture {self.project.architecture}",
+        ).render().save(f"{self.project_folder}/classification_report.jpg")
+
         return self
 
 
@@ -182,3 +226,20 @@ class ImageProject:
             Training(self, base, training_folder).train(
                 architecture=self.architecture, base_layer_train=base_layer_train
             ).predict()
+
+    def create_model_folder(self, project, architecture, model_name):
+        if not exists("models"):
+            makedirs("models")
+
+        if not exists(f"models/{project}"):
+            makedirs(f"models/{project}")
+
+        architecture_folder = f"models/{project}/{architecture}"
+        if not exists(architecture_folder):
+            makedirs(architecture_folder)
+
+        model_folder = f"models/{project}/{architecture}/{model_name}"
+        if not exists(model_folder):
+            makedirs(model_folder)
+
+        return model_folder

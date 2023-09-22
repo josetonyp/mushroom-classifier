@@ -9,27 +9,10 @@ from datetime import datetime
 #
 # FILE_SIZE=245,35 SAMPLE_COUNT=100 BATCH_SIZE=128 LABEL_COUNT=100 ./learning env
 #
-FILE_SIZE = tuple(os.getenv("FILE_SIZE", "254,254").split(","))
-SAMPLE_COUNT = os.getenv("SAMPLE_COUNT", 50)
-BATCH_SIZE = os.getenv("BATCH_SIZE", 32)
-LABEL_COUNT = os.getenv("PD_LABEL_COUNT", 5)
-
-
-def create_model_folder(model, name):
-    from os import makedirs
-    from os.path import exists
-
-    if not exists("models"):
-        makedirs("models")
-
-    if not exists(f"models/{model}"):
-        makedirs(f"models/{model}")
-
-    model_output = f"models/{model}/{name}"
-    if not exists(model_output):
-        makedirs(model_output)
-
-    return model_output
+FILE_SIZE = tuple(map(int, os.getenv("FILE_SIZE", "254,254").split(",")))
+SAMPLE_COUNT = int(os.getenv("SAMPLE_COUNT", 50))
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
+LABEL_COUNT = int(os.getenv("PD_LABEL_COUNT", 5))
 
 
 @click.group()
@@ -150,7 +133,7 @@ def predict_dataset(dataframe, model_file):
 @click.command()
 @click.option("--folder_name", required=True)
 @click.option("--model_name", required=True)
-@click.option("--architecture", required=True)
+@click.option("--architecture", required=False)
 def train_folder(folder_name, model_name, architecture="a"):
     """Trains a model in a giving Image Dataset in a folder.
     Images insde the folder must be separated in train, valid
@@ -161,21 +144,9 @@ def train_folder(folder_name, model_name, architecture="a"):
     Args:
         folder_name (str): Folder with images
         model_name (str): base model name Ex: 'vgg16'
+        architecture (str): CNN Architecture to run the training. (a, b or c)
     """
-    from dask.distributed import Client, progress
-    import joblib
-
     from source.cnn.project import ImageProject, Training
-
-    project = ImageProject(
-        folder_name.split("/")[-1],
-        folder_name,
-        file_size=FILE_SIZE,
-        batch_size=BATCH_SIZE,
-        architecture=architecture,
-    )
-
-    __client = Client(threads_per_worker=4, n_workers=4)
 
     if model_name == "all":
         model_name = [
@@ -189,8 +160,19 @@ def train_folder(folder_name, model_name, architecture="a"):
     else:
         model_name = [model_name]
 
-    with joblib.parallel_backend("dask"):
-        project.train(model_name, -4)
+    if architecture == None:
+        architecture = "a"
+
+    project = ImageProject(
+        folder_name.split("/")[-1],
+        folder_name,
+        file_size=FILE_SIZE,
+        batch_size=BATCH_SIZE,
+        architecture=architecture,
+    )
+    for modeln in model_name:
+        project.create_model_folder(folder_name.split("/")[-1], architecture, modeln)
+    project.train(model_name)
 
 
 @click.command()
