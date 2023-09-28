@@ -217,9 +217,6 @@ class ImageProject:
 
     def train(self, bases=[], base_layer_train=0):
         for base in bases:
-            if not exists(f"{self.models_folder}/{base}"):
-                makedirs(f"{self.models_folder}/{base}")
-
             version = datetime.now().strftime("%Y%m%d%H%M%S")
             training_folder = (
                 f"{self.models_folder}/{self.architecture}/{base}/{version}"

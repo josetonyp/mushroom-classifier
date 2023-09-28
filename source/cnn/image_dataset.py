@@ -24,12 +24,12 @@ class ImageDataSet:
 
     def load(self):
         """Loads and extracts the image files and labels"""
-        df = pd.read_csv(self.filename, low_memory=False)
-
+        self.__df = pd.read_csv(self.filename, low_memory=False)
+        self.label_statistics = self.__df.label.value_counts()
         self.df = pd.DataFrame(
             {
-                "feature": df[self.image_feature],
-                "label": df[self.label_feature],
+                "feature": self.__df[self.image_feature],
+                "label": self.__df[self.label_feature],
             }
         )
 
@@ -45,7 +45,20 @@ class ImageDataSet:
         self.df = self.df[self.df["label"].isin(list(top_counts))]
 
         # Recotegorize the labels for training
-        self.df["label"] = pd.factorize(self.df["label"])[0]
+        factorization = pd.factorize(self.df["label"])
+        labels_order = factorization[1].values
+        label_names = (
+            self.__df[self.__df.label_id.isin(list(labels_order))]
+            .label.value_counts()
+            .index.values
+        )
+        self.label_names = label_names
+
+        self.selected_label_statistics = pd.DataFrame(
+            {"label": label_names, "count": self.df.label.value_counts().values}
+        ).set_index("label")
+
+        self.df["label"] = factorization[0]
 
         return self
 
@@ -99,6 +112,10 @@ class ImageDataSet:
         X_test = pd.DataFrame(t)
 
         return X_train, X_valid, X_test
+
+    def save_label_statistics(self, folder):
+        self.label_statistics.to_csv(f"{folder}/label_statistics.csv")
+        self.selected_label_statistics.to_csv(f"{folder}/selected_label_statistics.csv")
 
     def build_folder(self, images_folder, images_folder_target):
         if not os.path.exists(images_folder_target):
