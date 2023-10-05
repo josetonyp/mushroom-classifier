@@ -1,6 +1,5 @@
 import streamlit as st
 
-import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -13,18 +12,11 @@ from streamlit_image_select import image_select
 
 st.sidebar.title("Table of Content")
 pages = [
-    "Flower Image Classification",
+    "Flower Set 1",
+    "Flower Set 2",
+    "Mushrooms Set 1",
 ]
 page = st.sidebar.radio("Index", pages)
-
-# if page == pages[0]:
-#     st.write("Introduction")
-#     if st.checkbox("Display"):
-#         st.write("Streamlit continuation")
-
-
-# if page == pages[1]:
-#     pass
 
 
 def load_image(url):
@@ -43,11 +35,11 @@ def load_image_url(url):
 
 img = None
 if page == pages[0]:
-    st.title("Flower Prediction")
+    st.title("Flower Set 1")
 
     assets = "static/flower_photos"
-    model_flower_photos = load_model("static/flower_photos/model.keras")
-    df = pd.read_csv("static/flower_photos/images.csv")
+    model_flower_photos = load_model(f"{assets}/model.keras")
+    df = pd.read_csv(f"{assets}/images.csv")
 
     features = []
     for file in df.feature:
@@ -55,7 +47,10 @@ if page == pages[0]:
         features.append(f"{assets}/{fc[-2]}/{fc[-1]}")
 
     img_feature = image_select(
-        "Flowers", features, captions=df.label_name.values, use_container_width=False
+        "Flowers",
+        features,
+        captions=list(df.label_name.values),
+        use_container_width=False,
     )
     if img_feature != None:
         img = load_image(img_feature)
@@ -69,14 +64,76 @@ if page == pages[0]:
         st.write(names[predictions])
 
 
-# if page == pages[3]:
-#     model = load_model("models/b/efficientNetB1/20230930232958_10/model.keras")
-#     url = st.text_input("Image URL", "")
+if page == pages[1]:
+    st.title("Flower Set 2")
 
-#     if st.button("Predict"):
-#         img = load_image_url(url)
-#         st.image(img, caption="Online Mushroom", width=256)
+    assets = "static/flower_images"
+    model_flower_images = load_model(f"{assets}/model.keras")
+    df = pd.read_csv(f"{assets}/images.csv")
 
-#         predictions = model.predict(img)
-#         predictions = np.argmax(predictions, axis=1)
-#         print(predictions)
+    features = []
+    for file in df.feature:
+        fc = file.split("/")
+        features.append(f"{assets}/{fc[-2]}/{fc[-1]}")
+
+    img_feature = image_select(
+        "Flowers",
+        features,
+        captions=list(df.label_name.values),
+        use_container_width=False,
+    )
+    if img_feature != None:
+        img = load_image(img_feature)
+        predictions = model_flower_images.predict(img)
+        predictions = np.argmax(predictions, axis=1)[0]
+        print(predictions)
+        print(img_feature)
+
+        st.image(load_image(img_feature) / 255)
+        names = [
+            "Sunflower",
+            "Tulip",
+            "Orchid",
+            "Lotus",
+            "Lilly",
+        ]
+        st.write(names[predictions])
+
+if page == pages[2]:
+    st.title("Mushrooms Set 1")
+
+    assets = "static/Kaggle Mushrooms"
+    model_mushset1 = load_model(f"{assets}/model.keras")
+    df = pd.read_csv(f"{assets}/images.csv")
+
+    features = []
+    for file in df.feature:
+        fc = file.split("/")
+        features.append(f"{assets}/{fc[-2]}/{fc[-1]}")
+
+    img_feature = image_select(
+        "Flowers",
+        features,
+        captions=list(df.label_name.values),
+        use_container_width=False,
+    )
+    if img_feature != None:
+        img = load_image(img_feature)
+        predictions = model_mushset1.predict(img)
+        predictions = np.argmax(predictions, axis=1)[0]
+        print(predictions)
+        print(img_feature)
+
+        st.image(load_image(img_feature) / 255)
+        names = [
+            "Cortinarius",
+            "Entoloma",
+            "Lactarius",
+            "Hygrocybe",
+            "Boletus",
+            "Agaricus",
+            "Suillus",
+            "Russula",
+            "Amanita",
+        ]
+        st.write(names[predictions])
