@@ -100,7 +100,15 @@ Reads the confusion matrix json file from the training ouput folder and converts
 
 ###### Render a Training History
 
+Reads the training history from the training ouput folder and plots it into an image 
+
 ```bash
+
+./learning render-history \
+            --file_name=<path_to_file> \
+            --title="Desired Title" \
+            --label_names="<Comma,separated,label,names>" \
+            --figsize=60,60
 
 ```
 

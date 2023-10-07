@@ -230,10 +230,10 @@ def render_cfn_matrix(file_name, title, label_names, figsize):
     """ Renders an image from a Confussion Matrix JSON file with configuration params
 
     Example: Simple Execturion
-    > ./learning render-cfn-matrix --file_name=<path_to_file>
+    > ./learning render-history --file_name=<path_to_file>
             
     Example: With all parameters
-    > ./learning render-cfn-matrix \
+    > ./learning render-history \
             --file_name=<path_to_file> \
             --title="Desired Title" \
             --label_names="<Comma,separated,label,names>" \
@@ -263,6 +263,43 @@ def render_cfn_matrix(file_name, title, label_names, figsize):
             figsize=figsize
         ).save(f"{file_name_tag}.jpg")
         print(f"Saving file to {file_name_tag}.jpg")
+
+
+@click.command()
+@click.option("--file_name", required=True)
+@click.option("--title", required=False, default="")
+@click.option("--figsize", required=False, default="15,5")
+def render_history(file_name, title, figsize):
+    """ Renders an image from a Training History file with configuration params
+
+    Example: Simple Execturion
+    > ./learning render-history --file_name=<path_to_file>
+            
+    Example: With all parameters
+    > ./learning render-history \
+            --file_name=<path_to_file> \
+            --title="Desired Title" \
+            --figsize=60,60
+            
+    Args:
+        file_name (str): Classification Report file
+        title (str, optional): Image title. Defaults to "".
+        figsize (str, optional): Desired Figure Size. Defaults to "50,50".
+    """
+    from source.cnn.graphics.training_history_image import TrainingHistoryImage
+    import pandas as pd
+
+    # Parsing arguments
+    figsize = tuple(map(int, figsize.split(",")))
+
+    print(f"Reading report from {file_name}")
+    file_name_tag = file_name.split(".")[0]
+    data = pd.read_csv(file_name)
+
+    TrainingHistoryImage(data, title).render(figsize=figsize).save(
+        f"{file_name_tag}.jpg"
+    )
+    print(f"Saving file to {file_name_tag}.jpg")
 
 
 @click.command()
@@ -296,6 +333,8 @@ cli.add_command(train_folder)
 cli.add_command(render)
 cli.add_command(render_report)
 cli.add_command(render_cfn_matrix)
+cli.add_command(render_history)
+
 cli.add_command(image_sampler)
 
 
