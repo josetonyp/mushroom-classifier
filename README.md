@@ -58,16 +58,63 @@ mkdir input # Folder where to locate images to train the model
 
 ### Trainers
 
-###### Folders DataSets
+Trainers are endpoints that takes a Dataset and runs model training automatically saving it's result in a folder structured based on training parameters. Given a project name the output folder will look like:
 
 ```bash
+- models
+  - project_name
+    - architecture
+      - base_model
+        - datetime
+          -- report.txt
+          -- confusion_matrix.json
+          -- classification_report.txt
+          -- history.csv
+          -- model.keras
+```
+For Example:
 
+```bash
+- models
+  - mushrooms
+    - b
+      - vgg16
+        - 20230925200055
+          -- report.txt
+          -- confusion_matrix.json
+          -- classification_report.txt
+          -- history.csv
+          -- model.keras
+      - efficientNetB1
+        - 20230927200055
+          -- report.txt
+          -- confusion_matrix.json
+          -- classification_report.txt
+          -- history.csv
+          -- model.keras
+```
+
+###### Folders DataSets
+Trains a Model based on an image folder with ouput in a target folder with a given model base name (ex: VGG16) and using a given architecture (a|b|c currently).
+
+```bash
+BATCH_SIZE=256 EPOCHS=20 ./learning train-folder  \
+      --folder_name=input/flower_images \
+      --model_name=efficientNetB1 \
+      --architecture=b
 ```
 
 ###### CSV DataSets
 
-```bash
+Trains a Model based on a CSV Dataset with images in a target folder with a given model base name (ex: VGG16) and using a given architecture (a|b|c currently).
 
+```bash
+BATCH_SIZE=300 EPOCHS=3 PD_LABEL_COUNT=5 ./learning train-dataset \
+      --name=<project-name> \
+      --dataframe_file=input/old_pd_files/mushrooms_top_15_psilocybe.csv\t \
+      --images_folder=input/images \
+      --model_name=efficientNetB1 \
+      --architecture=b
 ```
 
 ### Renderers
@@ -80,10 +127,10 @@ Reads the classification report files from the training ouput folder and convert
 
 ```bash
 ./learning render-report \
-            --file_name=<path_to_file> \
-            --title="Desired Title" \
-            --label_names="<Comma,separated,label,names>" \
-            --figsize=60,60
+      --file_name=<path_to_file> \
+      --title="Desired Title" \
+      --label_names="<Comma,separated,label,names>" \
+      --figsize=60,60
 ```
 ###### Render a Confusion Matrix
 
@@ -91,10 +138,10 @@ Reads the confusion matrix json file from the training ouput folder and converts
 
 ```bash
 ./learning render-cfn-matrix \
-            --file_name=<path_to_file> \
-            --title="Desired Title" \
-            --label_names="<Comma,separated,label,names>" \
-            --figsize=60,60
+      --file_name=<path_to_file> \
+      --title="Desired Title" \
+      --label_names="<Comma,separated,label,names>" \
+      --figsize=60,60
 
 ```
 
@@ -105,10 +152,10 @@ Reads the training history from the training ouput folder and plots it into an i
 ```bash
 
 ./learning render-history \
-            --file_name=<path_to_file> \
-            --title="Desired Title" \
-            --label_names="<Comma,separated,label,names>" \
-            --figsize=60,60
+      --file_name=<path_to_file> \
+      --title="Desired Title" \
+      --label_names="<Comma,separated,label,names>" \
+      --figsize=60,60
 ```
 
 ###### Renders a CSV Sampler
@@ -118,19 +165,19 @@ Takes a DataSet from a CSV file, samples 1 image per class and renders a sampler
 Renders a 1 x 6 image sampler
 ```bash
 PD_LABEL_COUNT=6 ./learning csv-sampler \
---dataframe_file=<path_to_file> \
---images_folder=input/images \
---format=1,6 \
---figsize=65,12
+      --dataframe_file=<path_to_file> \
+      --images_folder=input/images \
+      --format=1,6 \
+      --figsize=65,12
 ```
 
 Render a 3 x 5 image sampler
 ```bash
 PD_LABEL_COUNT=15 ./learning csv-sampler \
---dataframe_file=<path_to_file> \
---images_folder=input/images \
---format=3,5 \
---figsize=60,36
+      --dataframe_file=<path_to_file> \
+      --images_folder=input/images \
+      --format=3,5 \
+      --figsize=60,36
 ```
 
 ###### Renders a Folder Sampler
@@ -140,14 +187,20 @@ Takes a DataSet from a foler with images classified into subfolders as class, sa
 Render a 3 x n_classes image sampler
 ```bash
 ./learning folder-sampler \
---images_folder=<path_to_folder> \
---reows=3 \
---figsize=60,36
+      --images_folder=<path_to_folder> \
+      --reows=3 \
+      --figsize=60,36
 ```
 
 ## Predicting Application
 
-Our best trainined models were documented and 
+Our best trainined models were documented and deployed as Streamlit applications. The streamlit app is configured in `streamlit.py` and the statict files to execute that project are hosted in `./static/`
+
+Run the application in local:
+
+```bash
+streamlit run streamlit.py
+```
 
 ## Test
 The current architecture is build as POC and there is no intention to Unit Test the code.
