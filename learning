@@ -178,6 +178,50 @@ def render(folder, label_names=None):
 
 
 @click.command()
+@click.option("--file_name", required=True)
+@click.option("--title", required=False, default="")
+@click.option("--label_names", required=False, default="")
+@click.option("--figsize", required=False, default="50,50")
+def render_report(file_name, title, label_names, figsize):
+    """ Renders an image from a Classification Report with configuration params
+
+    Example: Simple Execturion
+    > ./learning render-report --file_name=<path_to_file>
+            
+    Example: With all parameters
+    > ./learning render-report \
+            --file_name=<path_to_file> \
+            --title="Desired Title" \
+            --label_names="<Comma,separated,label,names>" \
+            --figsize=60,60
+            
+    Args:
+        file_name (str): Classification Report file
+        title (str, optional): Image title. Defaults to "".
+        label_names (str, optional): Update the Label Names. Defaults to "".
+        figsize (str, optional): Desired Figure Size. Defaults to "50,50".
+    """
+    from source.cnn.graphics.classification_report import ClassificationReport
+
+    # Parsing arguments
+    figsize = tuple(map(int, figsize.split(",")))
+    if label_names != "":
+        label_names = label_names.split(",")
+    else:
+        label_names = None
+
+    print(f"Reading report from {file_name}")
+    with open(file_name) as file:
+        file_name_tag = file_name.split(".")[0]
+        data = file.read()
+
+        ClassificationReport(data, title, label_names=label_names).render(
+            figsize=figsize
+        ).save(f"{file_name_tag}.jpg")
+        print(f"Saving file to {file_name_tag}.jpg")
+
+
+@click.command()
 @click.option("--dataframe_file", required=True)
 @click.option("--images_folder", required=True)
 @click.option("--output", required=True)
@@ -204,7 +248,9 @@ def image_sampler(dataframe_file, images_folder, output):
 
 cli.add_command(train_dataset)
 cli.add_command(train_folder)
+
 cli.add_command(render)
+cli.add_command(render_report)
 cli.add_command(image_sampler)
 
 
