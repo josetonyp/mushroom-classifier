@@ -87,7 +87,14 @@ Reads the classification report files from the training ouput folder and convert
 ```
 ###### Render a Confusion Matrix
 
+Reads the confusion matrix json file from the training ouput folder and converts it into an image
+
 ```bash
+./learning render-cfn-matrix \
+            --file_name=<path_to_file> \
+            --title="Desired Title" \
+            --label_names="<Comma,separated,label,names>" \
+            --figsize=60,60
 
 ```
 
