@@ -147,37 +147,6 @@ def train_dataset(name, dataframe_file, images_folder, model_name, architecture=
 
 
 @click.command()
-@click.option("--folder", required=True)
-@click.option("--label_names", required=True)
-def render(folder, label_names=None):
-    from source.cnn.graphics.classification_report import ClassificationReport
-    from source.cnn.graphics.confussion_matrix import ConfusionMatrix
-    from source.cnn.graphics.training_history_image import TrainingHistoryImage
-    import json
-
-    cr = f"{folder}/classification_report"
-    cm = f"{folder}/confusion_matrix"
-    history = f"{folder}/history"
-
-    if label_names != None:
-        label_names = label_names.split(",")
-
-    with open(f"{cr}.txt") as file:
-        data = file.read()
-        ClassificationReport(data, "Psilocybe Genus", label_names=label_names).render(
-            figsize=(80, 80)
-        ).save(f"{cr}.jpg")
-
-    with open(f"{cm}.json") as file:
-        data = json.load(file)["matrix"]
-        ConfusionMatrix(data, "Psilocybe Genus", label_names=label_names).render(
-            figsize=(80, 80)
-        ).save(f"{cm}.jpg")
-
-    TrainingHistoryImage(f"{history}.csv").render().save(f"{history}.jpg")
-
-
-@click.command()
 @click.option("--file_name", required=True)
 @click.option("--title", required=False, default="")
 @click.option("--label_names", required=False, default="")
@@ -330,7 +299,6 @@ def image_sampler(dataframe_file, images_folder, output):
 cli.add_command(train_dataset)
 cli.add_command(train_folder)
 
-cli.add_command(render)
 cli.add_command(render_report)
 cli.add_command(render_cfn_matrix)
 cli.add_command(render_history)
