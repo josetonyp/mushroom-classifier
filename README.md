@@ -111,7 +111,7 @@ Reads the training history from the training ouput folder and plots it into an i
             --figsize=60,60
 ```
 
-###### Render a CSV Sampler
+###### Renders a CSV Sampler
 
 Takes a DataSet from a CSV file, samples 1 image per class and renders a sampler image.
 
@@ -119,8 +119,8 @@ Renders a 1 x 6 image sampler
 ```bash
 PD_LABEL_COUNT=6 ./learning csv-sampler \
 --dataframe_file=<path_to_file> \
---format=1,6 \
 --images_folder=input/images \
+--format=1,6 \
 --figsize=65,12
 ```
 
@@ -128,8 +128,20 @@ Render a 3 x 5 image sampler
 ```bash
 PD_LABEL_COUNT=15 ./learning csv-sampler \
 --dataframe_file=<path_to_file> \
---format=3,5 \
 --images_folder=input/images \
+--format=3,5 \
+--figsize=60,36
+```
+
+###### Renders a Folder Sampler
+
+Takes a DataSet from a foler with images classified into subfolders as class, samples 1 image per class and renders a sampler image.
+
+Render a 3 x n_classes image sampler
+```bash
+./learning folder-sampler \
+--images_folder=<path_to_folder> \
+--reows=3 \
 --figsize=60,36
 ```
 

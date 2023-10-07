@@ -125,7 +125,7 @@ def train_dataset(name, dataframe_file, images_folder, model_name, architecture=
     )
     dataset.load()
     dataset.find_n_top_labels(LABEL_COUNT)
-    # dataset.downsample_to_equal()
+    # dataset.downsample_to_equal(SAMPLE_COUNT)
     dataset.factorize_labels()
 
     project = Project(
@@ -281,10 +281,10 @@ def csv_sampler(dataframe_file, images_folder, output, format, figsize):
     """Take a CSV list of images and Renders a sampler image
     
     Example: Simple Execturion
-    > ./learning csv-sampler --dataframe_file=<path_to_file> --images_folder=<path_to_folder>
+    > ./learning folder-sampler --dataframe_file=<path_to_file> --images_folder=<path_to_folder>
             
     Example: With all parameters
-    > ./learning csv-sampler \
+    > ./learning folder-sampler \
             --dataframe_file=<path_to_file> \
             --images_folder=<path_to_folder> \
             --output=<path_to_folder> \
@@ -299,24 +299,67 @@ def csv_sampler(dataframe_file, images_folder, output, format, figsize):
         figsize (str): Output image size
     """
     from source.datasets.graphics.random_sampler import RandomSampler
-    from source.cnn.image_dataset import ImageDataSet
-    from source.cnn.folder_dataset import FolderDataset
+    from source.datasets.image_dataset import ImageDataSet
 
     # Parsing arguments
     figsize = tuple(map(int, figsize.split(",")))
     rows, cols = map(int, format.split(","))
 
     dataset = ImageDataSet(
-        dataframe_file,
-        "image_lien",
-        "label_id",
-        image_folder=images_folder,
-        sample_count=None,
+        dataframe_file, "image_lien", "label", image_folder=images_folder
     )
     dataset.load()
     dataset.find_n_top_labels(LABEL_COUNT)
     dataset.factorize_labels()
-    dataset.find_by_shape()
+    dataset.build_image_shape()
+    dataset.horizontals()
+    dataset.sample(1)
+    dataset.shuffle()
+
+    RandomSampler(dataset).render(nrows=rows, ncols=cols, figsize=figsize).save(
+        f"{output}/samples2.jpg"
+    )
+
+
+@click.command()
+@click.option("--images_folder", required=True)
+@click.option("--output", required=False, default="./")
+@click.option("--rows", required=False, default="2")
+@click.option("--figsize", required=False, default="60,10")
+def folder_sampler(images_folder, output, rows, figsize):
+    """Take a CSV list of images and Renders a sampler image
+    
+    Example: Simple Execturion
+    > ./learning folder-sampler --images_folder=<path_to_folder>
+            
+    Example: With all parameters
+    > ./learning folder-sampler \
+            --images_folder=<path_to_folder> \
+            --output=<path_to_folder> \
+            --rows=2 \
+            --figsize=60,12
+    
+    Args:
+        images_folder (str): Foler with image files
+        output (str): Output directory
+        rows (str): Output image sample size
+        figsize (str): Output image size
+    """
+    from source.datasets.graphics.random_sampler import RandomSampler
+    from source.datasets.folder_dataset import FolderDataset
+
+    # Parsing arguments
+    figsize = tuple(map(int, figsize.split(",")))
+    rows = int(rows)
+
+    dataset = FolderDataset(images_folder)
+    dataset.load()
+    dataset.build_image_shape()
+    dataset.horizontals()
+    dataset.sample(rows)
+    dataset.shuffle()
+
+    cols = len(dataset.label_names)
 
     RandomSampler(dataset).render(nrows=rows, ncols=cols, figsize=figsize).save(
         f"{output}/samples2.jpg"
@@ -331,6 +374,7 @@ cli.add_command(render_cfn_matrix)
 cli.add_command(render_history)
 
 cli.add_command(csv_sampler)
+cli.add_command(folder_sampler)
 
 
 if __name__ == "__main__":

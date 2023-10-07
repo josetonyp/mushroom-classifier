@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from source.cnn.image_dataset import ImageDataSet
+from source.datasets.image_dataset import ImageDataSet
+from source.datasets.folder_dataset import FolderDataset
 
 
 class RandomSampler:
     """Given a Pandas Dataframe renders an sampler image from all rows"""
 
-    def __init__(self, dataset: ImageDataSet) -> None:
+    def __init__(self, dataset: ImageDataSet | FolderDataset) -> None:
         self.dataset = dataset
 
     def render(
@@ -36,26 +37,13 @@ class RandomSampler:
         axs = axs.flatten()
         plt.axis("off")
         plt.tight_layout()
-        samples_count = 1
-        samplesdf = pd.DataFrame({"feature": [], "label": [], "label_name": []})
 
-        datasetdf = self.dataset.df[self.dataset.df.horizontal]
-
-        for label, i in zip(
-            self.dataset.label_names, self.dataset.df.label.value_counts().index
-        ):
-            samples = datasetdf[datasetdf.label == i].sample(samples_count)
-            samples["label_name"] = np.repeat(label, samples_count)
-            samplesdf = pd.concat([samplesdf, samples])
-
-        samplesdf = samplesdf.reset_index(drop=True)
-
-        if samplesdf.shape[0] > nrows * ncols:
+        if self.dataset.df.shape[0] > nrows * ncols:
             raise Exception(
-                f"Samples are larger than image canvas. Samples: {samplesdf.shape[0]}, axes: {nrows*ncols}"
+                f"Samples are larger than image canvas. Samples: {self.dataset.df.shape[0]}, axes: {nrows*ncols}"
             )
 
-        for i, row in samplesdf.iterrows():
+        for i, row in self.dataset.df.iterrows():
             ax = axs[i]
             im = plt.imread(row.feature)
             ax.imshow(im)
