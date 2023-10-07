@@ -122,7 +122,7 @@ if page == pages[1]:
 if page == pages[2]:
     st.title("Mushrooms Set 1")
 
-    assets = "static/Kaggle Mushrooms"
+    assets = "static/Kaggle_Mushrooms"
     model_mushset1 = load_model(f"{assets}/model.keras")
 
     img_feature = render_images(assets)
