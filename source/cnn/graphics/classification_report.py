@@ -36,11 +36,11 @@ class ClassificationReport:
 
         plt.rcParams["font.family"] = "Optima LT Std"
         side_size, _ = figsize
-
-        self.fig, ax = plt.subplots(figsize=(side_size, side_size))
+        side_size = side_size * 0.7
+        self.fig, ax = plt.subplots(figsize=figsize)
 
         self.fig.suptitle(
-            f"Classification Report Model {self.model_name.upper()}",
+            f"Classification Report {self.model_name.upper()}",
             fontsize=side_size * 1.5,
         )
         if self.subtitle != "":
@@ -81,7 +81,7 @@ class ClassificationReport:
                 values[i, j],
                 horizontalalignment="center",
                 color="white" if values[i, j] > (values.max() / 2) else "black",
-                fontsize=side_size * 2,
+                fontsize=side_size * 1.5,
             )
 
         return self

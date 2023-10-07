@@ -44,21 +44,21 @@ class ImageDataSet:
         top_counts = self.df["label"].value_counts()[:n_class].index
         self.df = self.df[self.df["label"].isin(list(top_counts))]
 
-        # Recotegorize the labels for training
-        factorization = pd.factorize(self.df["label"])
-        labels_order = factorization[1].values
-        label_names = (
-            self.__df[self.__df.label_id.isin(list(labels_order))]
-            .label.value_counts()
-            .index.values
-        )
+        return self
+
+    def factorize_labels(self):
+        n_class = len(self.df.label.value_counts())
+        label_names = self.label_statistics[:n_class].index
+        # Resets the label ids for training based on their frequency
+
+        factorization = {v: i for i, v in enumerate(self.df.label.value_counts().index)}
+        self.df["label"] = self.df.label.replace(factorization)
+
         self.label_names = label_names
 
         self.selected_label_statistics = pd.DataFrame(
             {"label": label_names, "count": self.df.label.value_counts().values}
         ).set_index("label")
-
-        self.df["label"] = factorization[0]
 
         return self
 
@@ -116,6 +116,21 @@ class ImageDataSet:
     def save_label_statistics(self, folder):
         self.label_statistics.to_csv(f"{folder}/label_statistics.csv")
         self.selected_label_statistics.to_csv(f"{folder}/selected_label_statistics.csv")
+
+    def original(self):
+        return self.__df
+
+    def find_by_shape(self):
+        import matplotlib.pyplot as plt
+
+        horizontals = []
+        for file in self.df.feature:
+            shape = plt.imread(file).shape
+            horizontals.append(shape[0] < shape[1])
+
+        self.df["horizontal"] = horizontals
+
+        return self
 
     def build_folder(self, images_folder, images_folder_target):
         if not os.path.exists(images_folder_target):

@@ -3,6 +3,12 @@
 import click, os
 from datetime import datetime
 
+""" 
+    Command Line App that automates the execution of Model 
+    trainings based on different parameters
+
+"""
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 # Example
@@ -20,16 +26,6 @@ EPOCHS = int(os.getenv("EPOCHS", 8))
 @click.group()
 def cli():
     pass
-
-
-@click.command()
-def env():
-    print(type(FILE_SIZE))
-    print(f"FILE_SIZE={FILE_SIZE}")
-    print(f"SAMPLE_COUNT={SAMPLE_COUNT}")
-    print(f"BATCH_SIZE={BATCH_SIZE}")
-    print(f"LABEL_COUNT={LABEL_COUNT}")
-    print(f"EPOCHS={EPOCHS}")
 
 
 @click.command()
@@ -125,10 +121,12 @@ def train_dataset(name, dataframe_file, images_folder, model_name, architecture=
         "image_lien",
         "label_id",
         image_folder=images_folder,
-        sample_count=SAMPLE_COUNT,
+        sample_count=None,
     )
     dataset.load()
     dataset.find_n_top_labels(LABEL_COUNT)
+    # dataset.downsample_to_equal()
+    dataset.factorize_labels()
 
     project = Project(
         name,
@@ -166,24 +164,48 @@ def render(folder, label_names=None):
 
     with open(f"{cr}.txt") as file:
         data = file.read()
-        ClassificationReport(
-            data, "EfficientNetB1", label_names=label_names
-        ).render().save(f"{cr}.jpg")
+        ClassificationReport(data, "Psilocybe Genus", label_names=label_names).render(
+            figsize=(80, 80)
+        ).save(f"{cr}.jpg")
 
     with open(f"{cm}.json") as file:
         data = json.load(file)["matrix"]
-        ConfusionMatrix(data, "EfficientNetB1", label_names=label_names).render().save(
-            f"{cm}.jpg"
-        )
+        ConfusionMatrix(data, "Psilocybe Genus", label_names=label_names).render(
+            figsize=(80, 80)
+        ).save(f"{cm}.jpg")
 
     TrainingHistoryImage(f"{history}.csv").render().save(f"{history}.jpg")
+
+
+@click.command()
+@click.option("--dataframe_file", required=True)
+@click.option("--images_folder", required=True)
+@click.option("--output", required=True)
+def image_sampler(dataframe_file, images_folder, output):
+    from source.datasets.graphics.random_sampler import RandomSampler
+    from source.cnn.image_dataset import ImageDataSet
+    from source.cnn.folder_dataset import FolderDataset
+
+    dataset = ImageDataSet(
+        dataframe_file,
+        "image_lien",
+        "label_id",
+        image_folder=images_folder,
+        sample_count=None,
+    )
+
+    dataset.load()
+    dataset.find_n_top_labels(LABEL_COUNT)
+    dataset.factorize_labels()
+    dataset.find_by_shape()
+
+    RandomSampler(dataset).render(figsize=(100, 35)).save(f"{output}/samples2.jpg")
 
 
 cli.add_command(train_dataset)
 cli.add_command(train_folder)
 cli.add_command(render)
-
-cli.add_command(env)
+cli.add_command(image_sampler)
 
 
 if __name__ == "__main__":
