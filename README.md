@@ -109,9 +109,33 @@ Reads the training history from the training ouput folder and plots it into an i
             --title="Desired Title" \
             --label_names="<Comma,separated,label,names>" \
             --figsize=60,60
-
 ```
 
+###### Render a CSV Sampler
+
+Takes a DataSet from a CSV file, samples 1 image per class and renders a sampler image.
+
+Renders a 1 x 6 image sampler
+```bash
+PD_LABEL_COUNT=6 ./learning csv-sampler \
+--dataframe_file=<path_to_file> \
+--format=1,6 \
+--images_folder=input/images \
+--figsize=65,12
+```
+
+Render a 3 x 5 image sampler
+```bash
+PD_LABEL_COUNT=15 ./learning csv-sampler \
+--dataframe_file=<path_to_file> \
+--format=3,5 \
+--images_folder=input/images \
+--figsize=60,36
+```
+
+## Predicting Application
+
+Our best trainined models were documented and 
 
 ## Test
 The current architecture is build as POC and there is no intention to Unit Test the code.

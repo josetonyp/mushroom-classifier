@@ -274,11 +274,37 @@ def render_history(file_name, title, figsize):
 @click.command()
 @click.option("--dataframe_file", required=True)
 @click.option("--images_folder", required=True)
-@click.option("--output", required=True)
-def image_sampler(dataframe_file, images_folder, output):
+@click.option("--output", required=False, default="./")
+@click.option("--format", required=False, default="2,5")
+@click.option("--figsize", required=False, default="60,10")
+def csv_sampler(dataframe_file, images_folder, output, format, figsize):
+    """Take a CSV list of images and Renders a sampler image
+    
+    Example: Simple Execturion
+    > ./learning csv-sampler --dataframe_file=<path_to_file> --images_folder=<path_to_folder>
+            
+    Example: With all parameters
+    > ./learning csv-sampler \
+            --dataframe_file=<path_to_file> \
+            --images_folder=<path_to_folder> \
+            --output=<path_to_folder> \
+            --format=1,5 \
+            --figsize=60,12
+    
+    Args:
+        dataframe_file (str): CSV file with the list of images
+        images_folder (str): Foler with image files
+        output (str): Output directory
+        format (str): Output image sample size
+        figsize (str): Output image size
+    """
     from source.datasets.graphics.random_sampler import RandomSampler
     from source.cnn.image_dataset import ImageDataSet
     from source.cnn.folder_dataset import FolderDataset
+
+    # Parsing arguments
+    figsize = tuple(map(int, figsize.split(",")))
+    rows, cols = map(int, format.split(","))
 
     dataset = ImageDataSet(
         dataframe_file,
@@ -287,13 +313,14 @@ def image_sampler(dataframe_file, images_folder, output):
         image_folder=images_folder,
         sample_count=None,
     )
-
     dataset.load()
     dataset.find_n_top_labels(LABEL_COUNT)
     dataset.factorize_labels()
     dataset.find_by_shape()
 
-    RandomSampler(dataset).render(figsize=(100, 35)).save(f"{output}/samples2.jpg")
+    RandomSampler(dataset).render(nrows=rows, ncols=cols, figsize=figsize).save(
+        f"{output}/samples2.jpg"
+    )
 
 
 cli.add_command(train_dataset)
@@ -303,7 +330,7 @@ cli.add_command(render_report)
 cli.add_command(render_cfn_matrix)
 cli.add_command(render_history)
 
-cli.add_command(image_sampler)
+cli.add_command(csv_sampler)
 
 
 if __name__ == "__main__":

@@ -1,20 +1,39 @@
+from __future__ import annotations
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-import ipdb
+from source.cnn.image_dataset import ImageDataSet
 
 
 class RandomSampler:
-    def __init__(self, dataset):
+    """Given a Pandas Dataframe renders an sampler image from all rows"""
+
+    def __init__(self, dataset: ImageDataSet) -> None:
         self.dataset = dataset
 
-    def render(self, nrows=1, ncols=1, figsize=(20, 20)):
+    def render(
+        self, nrows: int = 1, ncols: int = 5, figsize: tuple = (20, 20)
+    ) -> RandomSampler:
+        """Renders the image sampler
+
+        Args:
+            nrows (int, optional): Number of rows in the image. Defaults to 1.
+            ncols (int, optional): Number of columns in the image. Defaults to 5.
+            figsize (tuple, optional): Figure Size. Defaults to (20, 20).
+
+        Raises:
+            Exception: Stops render if there are more images than slotes in the image
+
+        Returns:
+            RandomSampler: Instance of the sampler
+        """
         plt.rcParams["font.family"] = "Optima LT Std"
         side_size, _ = figsize
         side_size = side_size * 0.65
-        self.fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
-        ax.grid(False)
+
+        self.fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
+        axs = axs.flatten()
         plt.axis("off")
         plt.tight_layout()
         samples_count = 1
@@ -29,19 +48,27 @@ class RandomSampler:
             samples["label_name"] = np.repeat(label, samples_count)
             samplesdf = pd.concat([samplesdf, samples])
 
-        samplesdf = samplesdf.reset_index()
-        print(samplesdf.shape)
-        print(samplesdf)
-        rows = min([samplesdf.shape[0] // 2, samplesdf.shape[0] // 3, 2])
-        print(rows)
-        for row in samplesdf.iterrows():
-            im = plt.imread(row[1].feature)
-            ax = plt.subplot(rows, (samplesdf.shape[0] // rows) + 1, row[0] + 1)
+        samplesdf = samplesdf.reset_index(drop=True)
+
+        if samplesdf.shape[0] > nrows * ncols:
+            raise Exception(
+                f"Samples are larger than image canvas. Samples: {samplesdf.shape[0]}, axes: {nrows*ncols}"
+            )
+
+        for i, row in samplesdf.iterrows():
+            ax = axs[i]
+            im = plt.imread(row.feature)
             ax.imshow(im)
-            ax.set_title(row[1].label_name, fontsize=70)
+            ax.grid(False)
+            ax.set_title(f"{row.label_name}\n", fontsize=side_size * 1.2)
             ax.axis("off")
 
         return self
 
-    def save(self, filename):
-        self.fig.savefig(filename)
+    def save(self, filename: str) -> None:
+        """Save the generated figure into a file
+
+        Args:
+            filename (str): Target file name
+        """
+        self.fig.savefig(filename, dpi=200)
