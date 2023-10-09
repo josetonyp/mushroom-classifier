@@ -7,10 +7,7 @@ from .base import Base
 class FolderDataset(Base):
     """Loads images from a folder where images are classified by subfolders as classes"""
 
-    def __init__(
-        self,
-        folder: str,
-    ):
+    def __init__(self, folder: str):
         self.__folder = folder
 
     def load(self):
@@ -21,7 +18,8 @@ class FolderDataset(Base):
         self.__df = self.df = pd.DataFrame(
             {"feature": files, "label": labels, "label_name": labels}
         )
-        self.label_names = self.df.label_name.value_counts().index
+        self.label_statistics = self.df.label.value_counts()
+        self.label_names = self.label_statistics.index
 
         factorization = {
             v: i for i, v in enumerate(self.df.label_name.value_counts().index)

@@ -93,6 +93,10 @@ class Training:
         self.trainer.save(f"{self.project_folder}/model.keras")
         self.trainer.save_history(f"{self.project_folder}/history.csv")
 
+        train.to_csv(f"{self.project_folder}/dataset_train.csv")
+        valid.to_csv(f"{self.project_folder}/dataset_validation.csv")
+        self.test_dataset.to_csv(f"{self.project_folder}/dataset_test.csv")
+
         return self
 
     def predict(self) -> Training:

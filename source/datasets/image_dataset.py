@@ -40,21 +40,3 @@ class ImageDataSet(Base):
             )
 
         return self
-
-    def downsample_to_equal(self, sample_count: None = None):
-        if sample_count == None:
-            sample_count = min(self.df["label"].value_counts().values)
-
-        groups = self.df.groupby("label")
-
-        groups_list = []
-        for g in groups.groups:
-            groups_list.append(groups.get_group(g).sample(n=sample_count))
-
-        self.df = pd.concat(groups_list)
-
-        return self
-
-    def save_label_statistics(self, folder):
-        self.label_statistics.to_csv(f"{folder}/label_statistics.csv")
-        self.selected_label_statistics.to_csv(f"{folder}/selected_label_statistics.csv")

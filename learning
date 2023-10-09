@@ -44,10 +44,12 @@ def train_folder(folder_name, model_name, architecture="a"):
         model_name (str): base model name Ex: 'vgg16'
         architecture (str): CNN Architecture to run the training. (a, b or c)
     """
-    from source.cnn.project import ImageProject
+    from source.cnn.projects.project import Project
+    from source.datasets.folder_dataset import FolderDataset
+    from source.datasets.graphics.labels_value_counts import LabelValueCounts
 
     if model_name == "all":
-        model_name = [
+        training_base_models = [
             "vgg16",
             "vgg19",
             "resnet50",
@@ -56,22 +58,49 @@ def train_folder(folder_name, model_name, architecture="a"):
             "efficientNetB7",
         ]
     else:
-        model_name = [model_name]
+        training_base_models = [model_name]
 
     if architecture == None:
         architecture = "a"
 
-    project = ImageProject(
+    dataset = FolderDataset(folder_name)
+    dataset.load()
+    if SAMPLE_COUNT > 0:
+        print(f"Downsampling to {SAMPLE_COUNT} images")
+        dataset.downsample_to_equal(SAMPLE_COUNT)
+    dataset.factorize_labels()
+
+    project = Project(
         folder_name.split("/")[-1],
-        folder_name,
+        dataset,
+        training_base_models,
         file_size=FILE_SIZE,
         batch_size=BATCH_SIZE,
         architecture=architecture,
         epochs=EPOCHS,
     )
-    for modeln in model_name:
-        project.create_model_folder(folder_name.split("/")[-1], architecture, modeln)
-    project.train(model_name)
+
+    created_projects = project.train()
+
+    ## Render and Visualize project's output
+    for project in created_projects:
+        render_history.callback(f"{project}/history.csv")
+        render_cfn_matrix.callback(
+            f"{project}/confusion_matrix.json",
+            label_names=",".join(dataset.label_names),
+        )
+        render_report.callback(
+            f"{project}/classification_report.txt",
+            label_names=",".join(dataset.label_names),
+        )
+
+        LabelValueCounts(dataset.selected_label_statistics["count"]).render().save(
+            f"{project}/selected_label_statistics.jpg"
+        )
+
+        LabelValueCounts(dataset.label_statistics[:30]).render().save(
+            f"{project}/label_statistics.jpg"
+        )
 
 
 @click.command()
@@ -101,7 +130,7 @@ def train_dataset(name, dataframe_file, images_folder, model_name, architecture=
     """
     from source.cnn.projects.project import Project
     from source.datasets.image_dataset import ImageDataSet
-    from source.cnn.projects.labels_value_counts import LabelValueCounts
+    from source.datasets.graphics.labels_value_counts import LabelValueCounts
 
     if model_name == "all":
         training_base_models = [

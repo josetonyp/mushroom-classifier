@@ -118,6 +118,7 @@ class DataSetFolderGenerator:
         label_name="label",
     ):
         ## Remove images that have internal errors
+
         bads = []
         print("Searching for broken or unexisting JPG Images")
         for filepath in tqdm(df[feature_name]):

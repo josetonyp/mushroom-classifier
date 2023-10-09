@@ -113,6 +113,7 @@ class Base:
         Returns:
             tuple: Subset of data.
         """
+
         X_train, X_test, y_train, y_test = train_test_split(
             self.df["feature"],
             self.df["label"],
@@ -151,4 +152,36 @@ class Base:
             Base: DataSet
         """
         self.df = shuffle(self.df)
+        return self
+
+    def save_label_statistics(self, folder: str) -> Base:
+        """Documents Dataset project statistics
+
+        Args:
+            folder (_type_): Project folder
+        """
+        self.label_statistics.to_csv(f"{folder}/label_statistics.csv")
+        self.selected_label_statistics.to_csv(f"{folder}/selected_label_statistics.csv")
+        return self
+
+    def downsample_to_equal(self, sample_count: int | None = None) -> Base:
+        """Reduces the sample count to a given number per class
+
+        Args:
+            sample_count (int | None, optional): Numer of samples per classs. Defaults to None.
+
+        Returns:
+            Base: _description_
+        """
+        if sample_count == None:
+            sample_count = min(self.df["label"].value_counts().values)
+
+        groups = self.df.groupby("label")
+
+        groups_list = []
+        for g in groups.groups:
+            groups_list.append(groups.get_group(g).sample(n=sample_count))
+
+        self.df = pd.concat(groups_list)
+
         return self
