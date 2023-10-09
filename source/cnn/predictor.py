@@ -9,11 +9,8 @@ tf.get_logger().setLevel("INFO")
 
 
 class Predictor:
-    def __init__(self, n_class=5, batch_size=64, target_file_size_shape=(224, 224)):
-        self.batch_size = batch_size
-        self.target_file_size = target_file_size_shape
-        self.n_class = n_class
-        print(f"Output classes {self.n_class}", end=",\n")
+    def __init__(self, batch_size=64):
+        self.__batch_size = batch_size
 
     def load(self, model_file):
         self.model = load_model(model_file)
@@ -22,7 +19,7 @@ class Predictor:
 
     def predict(self, generator):
         self.generator = generator
-        steps = (generator.n // self.batch_size) + 1
+        steps = (generator.n // self.__batch_size) + 1
 
         print("-" * 80)
         print(f"Predicting with {generator.n} images")

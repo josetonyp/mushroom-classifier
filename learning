@@ -17,7 +17,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 # FILE_SIZE=245,35 SAMPLE_COUNT=100 BATCH_SIZE=128 LABEL_COUNT=100 ./learning env
 #
 FILE_SIZE = tuple(map(int, os.getenv("FILE_SIZE", "254,254").split(",")))
-SAMPLE_COUNT = int(os.getenv("SAMPLE_COUNT", 50))
+SAMPLE_COUNT = int(os.getenv("SAMPLE_COUNT", 0))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
 LABEL_COUNT = int(os.getenv("PD_LABEL_COUNT", 5))
 EPOCHS = int(os.getenv("EPOCHS", 8))
@@ -99,11 +99,12 @@ def train_dataset(name, dataframe_file, images_folder, model_name, architecture=
         model_name (_type_): _description_
         architecture (str, optional): _description_. Defaults to "a".
     """
-    from source.cnn.projects.dataset_project import Project
-    from source.cnn.image_dataset import ImageDataSet
+    from source.cnn.projects.project import Project
+    from source.datasets.image_dataset import ImageDataSet
+    from source.cnn.projects.labels_value_counts import LabelValueCounts
 
     if model_name == "all":
-        model_name = [
+        training_base_models = [
             "vgg16",
             "vgg19",
             "resnet50",
@@ -112,38 +113,55 @@ def train_dataset(name, dataframe_file, images_folder, model_name, architecture=
             "efficientNetB7",
         ]
     else:
-        model_name = [model_name]
+        training_base_models = [model_name]
 
     if architecture == None:
         architecture = "a"
+
     dataset = ImageDataSet(
         dataframe_file,
         "image_lien",
         "label_id",
         image_folder=images_folder,
-        sample_count=None,
     )
     dataset.load()
     dataset.find_n_top_labels(LABEL_COUNT)
-    # dataset.downsample_to_equal(SAMPLE_COUNT)
+    if SAMPLE_COUNT > 0:
+        print(f"Downsampling to {SAMPLE_COUNT} images")
+        dataset.downsample_to_equal(SAMPLE_COUNT)
     dataset.factorize_labels()
 
     project = Project(
         name,
         dataset,
-        images_folder,
+        training_base_models,
         file_size=FILE_SIZE,
         batch_size=BATCH_SIZE,
         architecture=architecture,
         epochs=EPOCHS,
     )
-    for modeln in model_name:
-        project.create_model_folder(name, architecture, modeln)
-    project.train(model_name)
 
-    # from dask.distributed import Client, progress
-    # import joblib
-    # with joblib.parallel_backend("dask"):
+    created_projects = project.train()
+
+    ## Render and Visualize project's output
+    for project in created_projects:
+        render_history.callback(f"{project}/history.csv")
+        render_cfn_matrix.callback(
+            f"{project}/confusion_matrix.json",
+            label_names=",".join(dataset.label_names),
+        )
+        render_report.callback(
+            f"{project}/classification_report.txt",
+            label_names=",".join(dataset.label_names),
+        )
+
+        LabelValueCounts(dataset.selected_label_statistics["count"]).render().save(
+            f"{project}/selected_label_statistics.jpg"
+        )
+
+        LabelValueCounts(dataset.label_statistics[:30]).render().save(
+            f"{project}/label_statistics.jpg"
+        )
 
 
 @click.command()
@@ -151,7 +169,7 @@ def train_dataset(name, dataframe_file, images_folder, model_name, architecture=
 @click.option("--title", required=False, default="")
 @click.option("--label_names", required=False, default="")
 @click.option("--figsize", required=False, default="50,50")
-def render_report(file_name, title, label_names, figsize):
+def render_report(file_name, title="", label_names="", figsize="50,50"):
     """ Renders an image from a Classification Report with configuration params
 
     Example: Simple Execturion
@@ -195,7 +213,7 @@ def render_report(file_name, title, label_names, figsize):
 @click.option("--title", required=False, default="")
 @click.option("--label_names", required=False, default="")
 @click.option("--figsize", required=False, default="50,50")
-def render_cfn_matrix(file_name, title, label_names, figsize):
+def render_cfn_matrix(file_name, title="", label_names="", figsize="50,50"):
     """ Renders an image from a Confussion Matrix JSON file with configuration params
 
     Example: Simple Execturion
@@ -238,7 +256,7 @@ def render_cfn_matrix(file_name, title, label_names, figsize):
 @click.option("--file_name", required=True)
 @click.option("--title", required=False, default="")
 @click.option("--figsize", required=False, default="15,5")
-def render_history(file_name, title, figsize):
+def render_history(file_name, title="", figsize="15,5"):
     """ Renders an image from a Training History file with configuration params
 
     Example: Simple Execturion
