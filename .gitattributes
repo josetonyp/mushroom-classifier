@@ -2,3 +2,7 @@ static/mushrooms/model_3.keras filter=lfs diff=lfs merge=lfs -text
 static/mushrooms/model_5.keras filter=lfs diff=lfs merge=lfs -text
 static/psilocybe/model_3.keras filter=lfs diff=lfs merge=lfs -text
 static/psilocybe/model_5.keras filter=lfs diff=lfs merge=lfs -text
+datasets filter=lfs diff=lfs merge=lfs -text
+datasets/observations_mushroom.csv filter=lfs diff=lfs merge=lfs -text
+datasets/observations_mushroom_prediction.csv filter=lfs diff=lfs merge=lfs -text
+datasets/observations_mushroom_pred_manual_cat_filter.csv filter=lfs diff=lfs merge=lfs -text
