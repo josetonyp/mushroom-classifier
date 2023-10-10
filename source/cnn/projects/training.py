@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from PIL import ImageFile
+from datetime import datetime
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -11,15 +12,24 @@ from source.cnn.generators.image_folder_generator import DataSetFolderGenerator
 from source.cnn.trainer import Trainer
 from source.cnn.predictor import Predictor
 
+from source.cnn.projects.output.training_records import TrainingRecords
 
-class Training:
+
+class Training(object):
     def __init__(
-        self, project: str, base_name: str, project_folder: str, logger: object
+        self, project: object, base_name: str, project_folder: str, logger: object
     ) -> Training:
         self.project = project
         self.base_model_name = base_name
         self.project_folder = project_folder
         self.__logger = logger
+        self.__record_db = TrainingRecords(self.project.project_folder_path)
+
+        self.__record_db.save(
+            self.project_folder.split("/")[-1],
+            self.base_model_name,
+            self.project.architecture,
+        )
 
     def train(self, architecture="a", base_layer_train: int = 0) -> Training:
         """Selects, builds and train a model based on a selected Architecture
@@ -120,6 +130,15 @@ class Training:
         predictor.load(f"{self.project_folder}/model.keras")
 
         predictor.predict(generator)
+
+        self.__record_db.save(
+            self.project_folder.split("/")[-1],
+            self.base_model_name,
+            self.project.architecture,
+            predictor.accuracy_score(),
+            datetime.now().strftime("%Y%m%d%H%M%S"),
+        )
+
         predictor.classification_report(
             to_file=f"{self.project_folder}/classification_report.txt"
         )

@@ -78,3 +78,5 @@ zict==3.0.0
 zipp==3.16.2
 streamlit-image-select==0.6.0
 imageio==2.31.5
+pytest==7.4.2
+tinydb==4.8.0

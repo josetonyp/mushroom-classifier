@@ -6,7 +6,7 @@ from source.cnn.projects.training import Training
 from source.logger import Logger as CNNLogger
 
 
-class Project:
+class Project(object):
     """Configure and executes a training project"""
 
     def __init__(
@@ -14,7 +14,7 @@ class Project:
         name: str,
         dataset: ImageDataSet,
         base_models,
-        ouput_folder: str = "models",
+        output_folder: str = "models",
         file_size: tuple = (254, 254),
         batch_size: int = 64,
         architecture: str = "a",
@@ -28,8 +28,10 @@ class Project:
         self.architecture = architecture
         self.epochs = epochs
 
-        self.__ouput_folder = ouput_folder
+        self.__output_folder = output_folder
         self.__base_models = base_models
+
+        self.project_folder_path = f"{self.__output_folder}/{self.name}"
 
     def train(self, base_layer_train: int = 0) -> list:
         """Create the training folder, executes training and predictions for each given base model
@@ -42,7 +44,7 @@ class Project:
             list: List of trained project's folders
         """
         output = OutputFolders(
-            self.__ouput_folder, self.name, self.architecture, self.__base_models
+            self.__output_folder, self.name, self.architecture, self.__base_models
         ).build()
 
         projects = []

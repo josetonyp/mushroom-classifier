@@ -1,7 +1,7 @@
 import json
 import numpy as np
 
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 
@@ -29,6 +29,9 @@ class Predictor:
         predictions = self.model.predict(self.generator, verbose=True, steps=steps)
 
         self.predictions = np.argmax(predictions, axis=1)
+
+    def accuracy_score(self):
+        return accuracy_score(self.generator.labels, self.predictions)
 
     def classification_report(self, to_file=None):
         self.class_report = classification_report(
