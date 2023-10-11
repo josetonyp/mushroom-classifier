@@ -30,9 +30,14 @@ class TrainingRecords(object):
 
     def save(
         self,
+        project_folder: str,
         starts_at: str,
         base_model: str,
         architecture: str,
+        epochs: int,
+        batch_size: int,
+        n_class: int,
+        dataset_size: int,
         accuracy: float = -1.0,
         ends_at: str = "",
     ) -> int:
@@ -57,9 +62,14 @@ class TrainingRecords(object):
             self.db.insert(
                 {
                     "id": _id,
+                    "project_folder": project_folder,
                     "starts_at": starts_at,
                     "base_model": base_model,
                     "architecture": architecture,
+                    "epochs": epochs,
+                    "batch_size": batch_size,
+                    "n_class": n_class,
+                    "datasets_size": dataset_size,
                 }
             )
         else:
@@ -72,3 +82,9 @@ class TrainingRecords(object):
             )
 
         return len(self.db.all())
+
+    def get_last_trained(self, architecture, model):
+        Record = Query()
+        return self.db.search(
+            (Record.architecture == architecture) & (Record.base_model == model)
+        )[-1]

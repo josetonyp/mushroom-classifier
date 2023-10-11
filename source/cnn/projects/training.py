@@ -26,9 +26,14 @@ class Training(object):
         self.__record_db = TrainingRecords(self.project.project_folder_path)
 
         self.__record_db.save(
+            self.project_folder,
             self.project_folder.split("/")[-1],
             self.base_model_name,
             self.project.architecture,
+            self.project.epochs,
+            self.project.batch_size,
+            self.project.dataset.n_class,
+            self.project.dataset.df.shape[0],
         )
 
     def train(self, architecture="a", base_layer_train: int = 0) -> Training:

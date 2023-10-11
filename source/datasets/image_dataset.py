@@ -26,6 +26,7 @@ class ImageDataSet(Base):
         """Loads and extracts the image files and labels"""
         self.__df = pd.read_csv(self.__filename, low_memory=False)
         self.label_statistics = self.__df.label.value_counts()
+        self.n_class = len(self.label_statistics.values)
         self.df = pd.DataFrame(
             {
                 "feature": self.__df[self.__image_feature],

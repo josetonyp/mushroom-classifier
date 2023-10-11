@@ -20,7 +20,7 @@ class FolderDataset(Base):
         )
         self.label_statistics = self.df.label.value_counts()
         self.label_names = self.label_statistics.index
-
+        self.n_class = len(self.label_names)
         factorization = {
             v: i for i, v in enumerate(self.df.label_name.value_counts().index)
         }

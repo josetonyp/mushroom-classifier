@@ -35,11 +35,29 @@ def test_load_db(record_dir):
 def test_save_training_record(record_dir):
     record = TrainingRecords(record_dir)
 
-    count = record.save("20231009202121", "vgg16", "a")
+    count = record.save(
+        "<path_to_folder>",
+        "20231009202121",
+        "vgg16",
+        "a",
+        20,
+        128,
+        5,
+        1000,
+    )
 
     assert count == 1
 
-    count = record.save("20231009202121", "vgg16", "a")
+    count = record.save(
+        "<path_to_folder>",
+        "20231009202121",
+        "vgg16",
+        "a",
+        20,
+        128,
+        5,
+        1000,
+    )
 
     assert count == 1
 
@@ -47,10 +65,54 @@ def test_save_training_record(record_dir):
 def test_update_created_training_record(record_dir):
     record = TrainingRecords(record_dir)
 
-    count = record.save("20231009202121", "vgg16", "a")
+    count = record.save(
+        "<path_to_folder>",
+        "20231009202121",
+        "vgg16",
+        "a",
+        20,
+        128,
+        5,
+        1000,
+    )
 
     assert count == 1
 
-    count = record.save("20231009202121", "vgg16", "a", 0.84, "20231009212121")
+    count = record.save(
+        "<path_to_folder>",
+        "20231009202121",
+        "vgg16",
+        "a",
+        20,
+        128,
+        5,
+        1000,
+        0.84,
+        "20231009212121",
+    )
 
     assert count == 1
+
+
+def test_last_trained(record_dir):
+    record = TrainingRecords(record_dir)
+
+    count = record.save(
+        "<path_to_folder>",
+        "20231009202121",
+        "vgg16",
+        "a",
+        20,
+        128,
+        5,
+        1000,
+        0.84,
+        "20231009212121",
+    )
+
+    assert count == 1
+
+    last = record.get_last_trained("a", "vgg16")
+    assert last["starts_at"] == "20231009202121"
+    assert last["ends_at"] == "20231009212121"
+    assert last["project_folder"] == "<path_to_folder>"
