@@ -1,10 +1,11 @@
 from __future__ import annotations
-import matplotlib.pyplot as plt
-import numpy as np
-import re, itertools
 
+import itertools
+import re
 from functools import cached_property
 
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
 grg = LinearSegmentedColormap.from_list("rg", ["#EAEAF2", "#3174A1"], N=256)
@@ -15,7 +16,7 @@ class ClassificationReport:
     image from that report
 
     Example:
-    ClassificationReport(data: str, title: str, label_names: list | None =label_names)\
+    ClassificationReport(data, title, label_names=label_names)\
         .render(figsize=(<int>,<int>))\
         .save("<path_to_file>")
     """
@@ -42,7 +43,7 @@ class ClassificationReport:
 
 
         Args:
-            cmap (LinearSegmentedColormap, optional): Color Map. Defaults to LinearSegmentedColormap.from_list("rg", ["#EAEAF2", "#3174A1"], N=256).
+            cmap (LinearSegmentedColormap, optional): Color Map.
             figsize (tuple, optional): Figure Size. Defaults to (50, 50).
 
         Returns:
@@ -71,7 +72,7 @@ class ClassificationReport:
         ax.set_xlabel("Metrics", fontsize=side_size * 1.5)
         ax.set_ylabel("Classes", fontsize=side_size * 1.5)
 
-        if self.__label_names != None:
+        if self.__label_names is not None:
             ax.set_yticks(
                 np.arange(len(matrix)),
                 self.__label_names,
@@ -91,13 +92,15 @@ class ClassificationReport:
         )
 
         ax.grid(False)
-        for i, j in itertools.product(range(values.shape[0]), range(values.shape[1])):
+        ms = itertools.product(range(values.shape[0]), range(values.shape[1]))
+        for i, j in ms:
+            color = "white" if values[i, j] > (values.max() / 2) else "black"
             im.axes.text(
                 j,
                 i,
                 values[i, j],
                 horizontalalignment="center",
-                color="white" if values[i, j] > (values.max() / 2) else "black",
+                color=color,
                 fontsize=side_size * 1.5,
             )
 
@@ -122,8 +125,9 @@ class ClassificationReport:
 
     @cached_property
     def classification_matrix(self) -> np.ndarray:
-        """Extracts classification precision, recall, f1-score and support from report
-        and converst it into a renderable numpay array.
+        """Extracts classification precision, recall, f1-score
+        and support from report and converst it into a renderable
+        numpay array.
 
         Returns:
             np.ndarray: Report values
@@ -133,7 +137,7 @@ class ClassificationReport:
         for result in self.lines[2:]:
             if result.strip() == "":
                 break
-            nums = re.findall("[\d\.]+", result.strip())
+            nums = re.findall(r"[\d\.]+", result.strip())
             nums = [float(x) for x in nums]
             matrix += [nums]
 
@@ -146,7 +150,6 @@ class ClassificationReport:
         Returns:
             float: Report total accuracy
         """
-        accuracy = self.lines[2:]
 
         breking_index = 0
         for i, result in enumerate(self.lines[2:]):
@@ -156,5 +159,5 @@ class ClassificationReport:
 
         accuracy_line = self.lines[2:][breking_index + 1]
 
-        nums = re.findall("[\d\.]+", accuracy_line.strip())
+        nums = re.findall(r"[\d\.]+", accuracy_line.strip())
         return float(nums[0])

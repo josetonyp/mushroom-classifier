@@ -1,6 +1,6 @@
-import os
-from tinydb import TinyDB, Query
 import hashlib
+
+from tinydb import Query, TinyDB
 
 
 class TrainingRecords(object):
@@ -48,7 +48,8 @@ class TrainingRecords(object):
             base_model (str): Base model ex: vgg16
             architecture (str): Architecture ex: a or b
             accuracy (float, optional): Prediction accuracy. Defaults to -1.0.
-            ends_at (str, optional): Datetime string representing the ending time. Defaults to "".
+            ends_at (str, optional): Datetime string representing the
+            ending time. Defaults to "".
 
         Returns:
             int: DB records count
@@ -84,7 +85,7 @@ class TrainingRecords(object):
         return len(self.db.all())
 
     def get_last_trained(self, architecture, model):
-        Record = Query()
+        R = Query()
         return self.db.search(
-            (Record.architecture == architecture) & (Record.base_model == model)
+            (R.architecture == architecture) & (R.base_model == model)
         )[-1]

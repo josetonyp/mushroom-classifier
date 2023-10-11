@@ -1,16 +1,13 @@
 from tensorflow.keras.layers import (
-    Conv2D,
-    MaxPooling2D,
     BatchNormalization,
+    Conv2D,
     Dense,
-    Dropout,
     Flatten,
-    GlobalAveragePooling2D,
+    MaxPooling2D,
 )
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers.experimental.preprocessing import Rescaling
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.models import Sequential
 
 
 class AchC:
@@ -32,7 +29,12 @@ class AchC:
         self.model = Sequential(
             [
                 Rescaling(
-                    1.0 / 255, input_shape=(self.file_size[0], self.file_size[1], 3)
+                    1.0 / 255,
+                    input_shape=(
+                        self.file_size[0],
+                        self.file_size[1],
+                        3,
+                    ),
                 ),
                 Conv2D(16, 3, padding="same", activation="relu"),
                 MaxPooling2D(),

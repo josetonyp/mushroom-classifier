@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from source.cnn.projects.output.folders import Folders as OutputFolders
-from source.datasets.image_dataset import ImageDataSet
 from source.cnn.projects.training import Training
+from source.datasets.image_dataset import ImageDataSet
 from source.logger import Logger as CNNLogger
 
 
@@ -34,32 +34,40 @@ class Project(object):
         self.project_folder_path = f"{self.__output_folder}/{self.name}"
 
     def train(self, base_layer_train: int = 0) -> list:
-        """Create the training folder, executes training and predictions for each given base model
+        """Create the training folder, executes training and predictions
+        for each given base model
 
         Args:
-            base_layer_train (int, optional): Number of top layers to train in the base folder. It must be negative. Defaults to 0.
+            base_layer_train (int, optional): Number of top layers to
+            train in the base folder. It must be negative.
+            Defaults to 0.
 
 
         Returns:
             list: List of trained project's folders
         """
         output = OutputFolders(
-            self.__output_folder, self.name, self.architecture, self.__base_models
+            self.__output_folder,
+            self.name,
+            self.architecture,
+            self.__base_models,
         ).build()
 
         projects = []
         for base in self.__base_models:
             base_output_folder = output.create(base)
             projects.append(base_output_folder)
+            logger_name = f"CNN Images by folder model {base_output_folder}"
             logger = (
                 CNNLogger(
                     f"{base_output_folder}/report.txt",
-                    logger_name=f"CNN Images by folder model {base_output_folder}",
+                    logger_name=logger_name,
                 )
             ).get_logger()
 
             Training(self, base, base_output_folder, logger).train(
-                architecture=self.architecture, base_layer_train=base_layer_train
+                architecture=self.architecture,
+                base_layer_train=base_layer_train,
             ).predict()
 
         return projects

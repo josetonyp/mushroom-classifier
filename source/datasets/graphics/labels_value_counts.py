@@ -1,8 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import itertools
-
 from matplotlib.colors import LinearSegmentedColormap
 
 grg = LinearSegmentedColormap.from_list("rg", ["#EAEAF2", "#3174A1"], N=256)
@@ -21,7 +18,11 @@ class LabelValueCounts:
         side_size, _ = figsize
 
         self.fig, ax = plt.subplots(figsize=figsize, dpi=200)
-        sns.barplot(x=self.label_counts.index.values, y=self.label_counts.values, ax=ax)
+        sns.barplot(
+            x=self.label_counts.index.values,
+            y=self.label_counts.values,
+            ax=ax,
+        )
 
         for p in ax.patches:
             ax.annotate(

@@ -1,10 +1,9 @@
 from __future__ import annotations
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 
-from source.datasets.image_dataset import ImageDataSet
+import matplotlib.pyplot as plt
+
 from source.datasets.folder_dataset import FolderDataset
+from source.datasets.image_dataset import ImageDataSet
 
 
 class RandomSampler:
@@ -20,11 +19,13 @@ class RandomSampler:
 
         Args:
             nrows (int, optional): Number of rows in the image. Defaults to 1.
-            ncols (int, optional): Number of columns in the image. Defaults to 5.
+            ncols (int, optional): Number of columns in the image.
+            Defaults to 5.
             figsize (tuple, optional): Figure Size. Defaults to (20, 20).
 
         Raises:
-            Exception: Stops render if there are more images than slotes in the image
+            Exception: Stops render if there are more images than slotes
+            in the image canvas
 
         Returns:
             RandomSampler: Instance of the sampler
@@ -40,7 +41,11 @@ class RandomSampler:
 
         if self.dataset.df.shape[0] > nrows * ncols:
             raise Exception(
-                f"Samples are larger than image canvas. Samples: {self.dataset.df.shape[0]}, axes: {nrows*ncols}"
+                (
+                    f"Samples are larger than image canvas."
+                    f"Samples: {self.dataset.df.shape[0]},"
+                    f"axes: {nrows*ncols}"
+                )
             )
 
         for i, row in self.dataset.df.iterrows():

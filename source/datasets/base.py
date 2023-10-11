@@ -1,7 +1,7 @@
 from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import pandas as pd
-
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
@@ -58,7 +58,8 @@ class Base:
         return self
 
     def build_image_shape(self) -> Base:
-        """Process all images and computes it orientation in a "horizontal" feature
+        """Process all images and computes it orientation
+        in a "horizontal" feature.
 
         Returns:
             Base: DataSet
@@ -91,24 +92,33 @@ class Base:
         n_class = len(self.df.label.value_counts())
         label_names = self.label_statistics[:n_class].index
         # Resets the label ids for training based on their frequency
-
-        factorization = {v: i for i, v in enumerate(self.df.label.value_counts().index)}
+        labels = self.df.label.value_counts().index
+        factorization = {v: i for i, v in enumerate(labels)}
         self.df["label"] = self.df.label.replace(factorization)
 
         self.label_names = label_names
 
         self.selected_label_statistics = pd.DataFrame(
-            {"label": label_names, "count": self.df.label.value_counts().values}
+            {
+                "label": label_names,
+                "count": self.df.label.value_counts().values,
+            }
         ).set_index("label")
 
         return self
 
-    def split_sample(self, valid_size: float = 0.2, test_size: float = 0.2) -> tuple:
+    def split_sample(
+        self,
+        valid_size: float = 0.2,
+        test_size: float = 0.2,
+    ) -> tuple:
         """Splits the Dataset into train, valid and test subsets
 
         Args:
-            valid_size (float, optional): Validation size in %. Defaults to 0.2.
-            test_size (float, optional): Testing size in %. Defaults to 0.2.
+            valid_size (float, optional): Validation size in %.
+            Defaults to 0.2.
+            test_size (float, optional): Testing size in %.
+            Defaults to 0.2.
 
         Returns:
             tuple: Subset of data.
@@ -160,20 +170,25 @@ class Base:
         Args:
             folder (_type_): Project folder
         """
-        self.label_statistics.to_csv(f"{folder}/label_statistics.csv")
-        self.selected_label_statistics.to_csv(f"{folder}/selected_label_statistics.csv")
+        self.label_statistics.to_csv(
+            f"{folder}/label_statistics.csv",
+        )
+        self.selected_label_statistics.to_csv(
+            f"{folder}/selected_label_statistics.csv",
+        )
         return self
 
     def downsample_to_equal(self, sample_count: int | None = None) -> Base:
         """Reduces the sample count to a given number per class
 
         Args:
-            sample_count (int | None, optional): Numer of samples per classs. Defaults to None.
+            sample_count (int | None, optional): Numer of samples per classs.
+            Defaults to None.
 
         Returns:
             Base: _description_
         """
-        if sample_count == None:
+        if sample_count is None:
             sample_count = min(self.df["label"].value_counts().values)
 
         groups = self.df.groupby("label")

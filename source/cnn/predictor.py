@@ -1,9 +1,13 @@
 import json
-import numpy as np
 
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
-from tensorflow.keras.models import load_model
+import numpy as np
 import tensorflow as tf
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+)
+from tensorflow.keras.models import load_model
 
 tf.get_logger().setLevel("INFO")
 
@@ -26,7 +30,11 @@ class Predictor:
         print(f"Predicting in {steps} steps")
         print("-" * 80)
 
-        predictions = self.model.predict(self.generator, verbose=True, steps=steps)
+        predictions = self.model.predict(
+            self.generator,
+            verbose=True,
+            steps=steps,
+        )
 
         self.predictions = np.argmax(predictions, axis=1)
 
@@ -38,15 +46,19 @@ class Predictor:
             self.generator.labels, self.predictions
         )
 
-        if to_file != None and type(to_file) == type(""):
+        if to_file is None and type(to_file) is str:
             open(to_file, "w").write(self.class_report)
 
         return self.class_report
 
     def confusion_matrix(self, to_file=None):
-        self.cnf_matrix = confusion_matrix(self.generator.labels, self.predictions)
+        self.cnf_matrix = confusion_matrix(
+            self.generator.labels,
+            self.predictions,
+        )
 
-        if to_file != None and type(to_file) == type(""):
-            open(to_file, "w").write(json.dumps({"matrix": self.cnf_matrix.tolist()}))
+        if to_file is not None and type(to_file) is str:
+            text = json.dumps({"matrix": self.cnf_matrix.tolist()})
+            open(to_file, "w").write(text)
 
         return self.cnf_matrix

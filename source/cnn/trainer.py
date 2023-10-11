@@ -1,12 +1,11 @@
+from __future__ import annotations
+import math
 import pandas as pd
-import numpy as np
-import json, math
-
 import tensorflow as tf
-
-tf.get_logger().setLevel("INFO")
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from .callbacks.timing import TimingCallback
+
+tf.get_logger().setLevel("INFO")
 
 
 class Trainer(object):
@@ -21,12 +20,12 @@ class Trainer(object):
         label_feature="label",
         image_feature="image_lien",
         epochs=8,
-    ):
-        ### Variables
+    ) -> None:
+        # Variables
         self.model = model
         self.batch_size = batch_size
 
-        ### Constants
+        # Constants
         self.target_file_size = target_file_size_shape
         self.label_feature = label_feature
         self.image_feature = image_feature
@@ -39,22 +38,22 @@ class Trainer(object):
         self.logger = logger
         self.epochs = epochs
 
-    def train(self, train_generator, valid_generator):
+    def train(self, train_generator, valid_generator) -> Trainer:
         self.logger.info("-" * 80)
         self.logger.info("Training Characterization")
         self.logger.info(f"Output classes {self.n_class}")
         self.logger.info(f"Compiling with optimizer {self.compile_optimizer}")
         self.logger.info(f"Compiling in {self.batch_size} batch size")
         self.logger.info(
-            f"Compiling for {train_generator.n//self.batch_size + 1} steps_per_epoch"
+            (
+                f"Compiling for {train_generator.n//self.batch_size + 1}"
+                "steps_per_epoch"
+            )
         )
         self.logger.info(f"Training with {train_generator.n} of images")
         self.logger.info(f"Generator has {len(train_generator)} batches")
         self.logger.info("-" * 80)
 
-        history = None
-        # The batch size determines how many of the images are shown per one step
-        # steps_per_epoch: Total number of steps (batches of samples) before declaring one epoch finished and starting the next epoch.
         history = self.model.fit(
             train_generator,
             steps_per_epoch=math.ceil(train_generator.n / self.batch_size),
@@ -73,7 +72,7 @@ class Trainer(object):
     def save(self, file):
         self.logger.info("-" * 80)
         self.logger.info("Saving Results")
-        self.logger.info(f"Saving model to file file")
+        self.logger.info("Saving model to file file")
         self.model.save(file)
 
     def save_history(self, file):

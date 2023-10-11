@@ -1,23 +1,24 @@
 from __future__ import annotations
-
-from PIL import ImageFile
 from datetime import datetime
-
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
 from source.cnn.architectures.factory import Factory as ArchFactory
 from source.cnn.bases.factory import Factory as BaseModelFactory
 from source.cnn.generators.image_folder_generator import DataSetFolderGenerator
-
-from source.cnn.trainer import Trainer
 from source.cnn.predictor import Predictor
-
 from source.cnn.projects.output.training_records import TrainingRecords
+from source.cnn.trainer import Trainer
+
+from PIL import ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class Training(object):
     def __init__(
-        self, project: object, base_name: str, project_folder: str, logger: object
+        self,
+        project: object,
+        base_name: str,
+        project_folder: str,
+        logger: object,
     ) -> Training:
         self.project = project
         self.base_model_name = base_name
@@ -40,23 +41,27 @@ class Training(object):
         """Selects, builds and train a model based on a selected Architecture
 
         Args:
-            architecture (str, optional): CNN Model Architecture. Defaults to "a".
-            base_layer_train (int, optional): Base layers to be trained. Defaults to 0.
+            architecture (str, optional): CNN Model Architecture.
+            Defaults to "a".
+            base_layer_train (int, optional): Base layers to be trained.
+            Defaults to 0.
 
         Returns:
             Training: Instance of Training
         """
         self.__logger.info(f"Training with Architecture {architecture}")
         self.__logger.info(f"Training Base layers {base_layer_train} onwards")
-        self.__logger.info(f"Training with Generator DataSetFolderGenerator")
+        self.__logger.info("Training with Generator DataSetFolderGenerator")
 
-        # The relationship between Base and Architecture requires a joined factory.
-        # There are Model Architectures that have a base for transferred learning
-        # and there are Model Architecture that are build from scratch which use no other
-        # pretrained model in their base
+        # The relationship between Base and Architecture requires a
+        # joined factory. There are Model Architectures that have a base
+        # for transferred learning and there are Model Architecture that
+        # are build from scratch which use no other pretrained model
+        # in their basee
         #
-        # Here, I seed the idea of selecting a base depending on the architecture but this
-        # would require encapsulation further down the delopment
+        # Here, I seed the idea of selecting a base depending on the
+        # architecture but this would require encapsulation further down
+        # the delopment
         #
         if architecture not in ["a", "b"]:
             self.base_model_name = "empty"
@@ -69,9 +74,13 @@ class Training(object):
 
         print("Loading Base Model and Architecture")
         self.model = ArchFactory.build(architecture)(
-            self.base.model(), self.project.n_class, file_size=self.project.file_size
+            self.base.model(),
+            self.project.n_class,
+            file_size=self.project.file_size,
         ).build()
-        self.__logger.info(self.model.summary(print_fn=lambda x: self.__logger.info(x)))
+        self.__logger.info(
+            self.model.summary(print_fn=lambda x: self.__logger.info(x)),
+        )
 
         train, valid, self.test_dataset = self.project.dataset.split_sample()
         self.project.dataset.save_label_statistics(self.project_folder)
@@ -93,7 +102,10 @@ class Training(object):
             feature_name="feature",
         )
         self.__logger.info(
-            f"Training with the following classes <label names> {self.project.dataset.label_names}"
+            (
+                f"Training with the following classes <label names>"
+                f"{self.project.dataset.label_names}"
+            )
         )
         self.trainer = Trainer(
             self.model,
@@ -120,7 +132,10 @@ class Training(object):
         Returns:
             Trainng: Instance of Training
         """
-        self.base = BaseModelFactory.build(self.base_model_name, self.project.file_size)
+        self.base = BaseModelFactory.build(
+            self.base_model_name,
+            self.project.file_size,
+        )
 
         gen = DataSetFolderGenerator(self.base.preprocess_input_method())
         generator = gen.generator(

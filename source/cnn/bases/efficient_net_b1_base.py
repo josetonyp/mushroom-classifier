@@ -1,9 +1,12 @@
-from tensorflow.keras.applications.efficientnet import EfficientNetB1, preprocess_input
+from tensorflow.keras.applications.efficientnet import (
+    EfficientNetB1,
+    preprocess_input,
+)
 
 
 class EfficientNetB1Base:
     def __init__(self, target_file_size, base_layer_train=0):
-        ## Build the base model
+        # Build the base model
         self.base_model = EfficientNetB1(
             weights="imagenet",
             include_top=False,

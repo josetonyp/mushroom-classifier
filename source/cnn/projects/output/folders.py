@@ -1,11 +1,13 @@
 from __future__ import annotations
+
+from datetime import datetime
 from os import makedirs
 from os.path import exists
-from datetime import datetime
 
 
 class Folders:
-    """Builds and Creates a folder where to document the exuction of the training"""
+    """Builds and Creates a folder where to document
+    training's execution"""
 
     def __init__(
         self,
@@ -37,7 +39,8 @@ class Folders:
         return self
 
     def create(self, base_model_name: str) -> str:
-        """Creates the ouput training folder where to document the model training
+        """Creates the ouput training folder where to document the
+        model training
 
         Args:
             base_model_name (str): Base model choosen to run the training

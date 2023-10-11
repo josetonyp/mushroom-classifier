@@ -1,6 +1,5 @@
-from tensorflow.keras.layers import Dense, Dropout, Flatten, GlobalAveragePooling2D
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D
+from tensorflow.keras.models import Sequential
 
 
 class AchA:

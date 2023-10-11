@@ -1,8 +1,9 @@
 from __future__ import annotations
-import matplotlib.pyplot as plt
-import numpy as np
+
 import itertools
 
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
 grg = LinearSegmentedColormap.from_list("rg", ["#EAEAF2", "#3174A1"], N=256)
@@ -13,7 +14,7 @@ class ConfusionMatrix:
     image.
 
     Example:
-    ConfusionMatrix(data,: str title: str, label_names: list | None =label_names)\
+    ConfusionMatrix(data, title, label_names=label_names)\
         .render(figsize=(<int>,<int>))\
         .save("<path_to_file>")
     """
@@ -39,7 +40,7 @@ class ConfusionMatrix:
         """Plots the Confusion Matrix
 
         Args:
-            cmap (LinearSegmentedColormap, optional): Color Map. Defaults to LinearSegmentedColormap.from_list("rg", ["#EAEAF2", "#3174A1"], N=256).
+            cmap (LinearSegmentedColormap, optional): Color Map.
             figsize (tuple, optional): Figure Size. Defaults to (50, 50).
 
         Returns:
@@ -67,14 +68,18 @@ class ConfusionMatrix:
         cbar.ax.set_yticklabels(ticklabs, fontsize=side_size * 1.5)
 
         tick_marks = np.arange(len(self.__classes))
-        if self.__label_names != None:
+        if self.__label_names is not None:
             ax.set_xticks(
                 tick_marks,
                 self.__label_names,
                 rotation="vertical",
                 fontsize=side_size * 1.5,
             )
-            ax.set_yticks(tick_marks, self.__label_names, fontsize=side_size * 1.5)
+            ax.set_yticks(
+                tick_marks,
+                self.__label_names,
+                fontsize=side_size * 1.5,
+            )
         else:
             ax.set_xticks(tick_marks, tick_marks, fontsize=side_size * 1.5)
             ax.set_yticks(tick_marks, tick_marks, fontsize=side_size * 1.5)

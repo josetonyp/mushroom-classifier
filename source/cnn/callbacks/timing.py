@@ -1,5 +1,6 @@
-from tensorflow.keras.callbacks import Callback
 from timeit import default_timer as timer
+
+from tensorflow.keras.callbacks import Callback
 
 
 class TimingCallback(Callback):

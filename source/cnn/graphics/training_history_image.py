@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
+import seaborn as sns
 
 sns.set_style("darkgrid")
 
@@ -60,7 +61,10 @@ class TrainingHistoryImage:
 
         ax2.plot(self.__data.index, self.__data["accuracy"])
         ax2.plot(self.__data.index, self.__data["val_accuracy"])
-        ax2.set_title("Model's Training Accuracy by Epochs", fontsize=side_size)
+        ax2.set_title(
+            "Model's Training Accuracy by Epochs",
+            fontsize=side_size,
+        )
         ax2.tick_params(axis="x", labelsize=side_size * 0.6)
         ax2.tick_params(axis="y", labelsize=side_size * 0.6)
         ax2.set_ylabel(

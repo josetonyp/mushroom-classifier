@@ -1,11 +1,13 @@
 from glob import glob
+
 import pandas as pd
 
 from .base import Base
 
 
 class FolderDataset(Base):
-    """Loads images from a folder where images are classified by subfolders as classes"""
+    """Loads images from a folder where images are classified
+    by subfolders as classes"""
 
     def __init__(self, folder: str):
         self.__folder = folder

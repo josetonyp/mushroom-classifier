@@ -1,8 +1,9 @@
-import pandas as pd
-from shutil import move
+from glob import glob
 from os import makedirs
 from os.path import exists
-from glob import glob
+from shutil import move
+
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
@@ -40,7 +41,11 @@ class FolderTrainTestSplit:
         train, valid = train_test_split(
             self.dataset, stratify=self.dataset.label, test_size=valid_size
         )
-        train, test = train_test_split(train, stratify=train.label, test_size=test_size)
+        train, test = train_test_split(
+            train,
+            stratify=train.label,
+            test_size=test_size,
+        )
 
         for file, label in zip(train.file, train.label):
             fname = file.split("/")[-1]
