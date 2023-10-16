@@ -4,7 +4,7 @@ from .ach_c import AchC
 
 
 class Factory:
-    def build(arch):
+    def build(arch: str):
         match arch:
             case "a":
                 return AchA

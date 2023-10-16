@@ -8,7 +8,7 @@ from .vgg19_base import VGG19Base
 
 
 class Factory:
-    def build(base, file_size, base_layer_train=0):
+    def build(base, file_size: tuple, base_layer_train: int = 0):
         match base:
             case "vgg16":
                 return VGG16Base(

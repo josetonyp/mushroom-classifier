@@ -31,7 +31,7 @@ class TrainingHistoryImage:
         """
         plt.rcParams["font.family"] = "Optima LT Std"
         side_size, _ = figsize
-        side_size = side_size
+        side_size = side_size * 0.5
 
         self.fig = plt.figure(figsize=figsize)
         self.fig.suptitle(

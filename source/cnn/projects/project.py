@@ -15,7 +15,7 @@ class Project(object):
         dataset: ImageDataSet,
         base_models,
         output_folder: str = "models",
-        file_size: tuple = (254, 254),
+        file_size: tuple(int, int) = (254, 254),
         batch_size: int = 64,
         architecture: str = "a",
         epochs: int = 8,
@@ -50,7 +50,6 @@ class Project(object):
             self.__output_folder,
             self.name,
             self.architecture,
-            self.__base_models,
         ).build()
 
         projects = []
@@ -63,7 +62,7 @@ class Project(object):
                     f"{base_output_folder}/report.txt",
                     logger_name=logger_name,
                 )
-            ).get_logger()
+            ).logger
 
             Training(self, base, base_output_folder, logger).train(
                 architecture=self.architecture,

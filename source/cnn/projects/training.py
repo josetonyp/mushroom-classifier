@@ -13,6 +13,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class Training(object):
+    """Trains a model based on a selected Architecture"""
+
     def __init__(
         self,
         project: object,
@@ -76,7 +78,6 @@ class Training(object):
         self.model = ArchFactory.build(architecture)(
             self.base.model(),
             self.project.n_class,
-            file_size=self.project.file_size,
         ).build()
         self.__logger.info(
             self.model.summary(print_fn=lambda x: self.__logger.info(x)),
@@ -85,17 +86,15 @@ class Training(object):
         train, valid, self.test_dataset = self.project.dataset.split_sample()
         self.project.dataset.save_label_statistics(self.project_folder)
 
-        print("Loading Image Data Generators")
+        print("Loading Train and Validation Image Data Generators")
         gen = DataSetFolderGenerator(self.base.preprocess_input_method())
         train_generator = gen.generator(
-            "train",
             train,
             target_size=self.project.file_size,
             batch_size=self.project.batch_size,
             feature_name="feature",
         )
         valid_generator = gen.generator(
-            "valid",
             valid,
             target_size=self.project.file_size,
             batch_size=self.project.batch_size,
@@ -107,7 +106,7 @@ class Training(object):
                 f"{self.project.dataset.label_names}"
             )
         )
-        self.trainer = Trainer(
+        trainer = Trainer(
             self.model,
             n_class=self.project.file_size,
             batch_size=self.project.batch_size,
@@ -116,9 +115,9 @@ class Training(object):
             epochs=self.project.epochs,
         )
 
-        self.trainer.train(train_generator, valid_generator)
-        self.trainer.save(f"{self.project_folder}/model.keras")
-        self.trainer.save_history(f"{self.project_folder}/history.csv")
+        trainer.train(train_generator, valid_generator)
+        trainer.save(f"{self.project_folder}/model.keras")
+        trainer.save_history(f"{self.project_folder}/history.csv")
 
         train.to_csv(f"{self.project_folder}/dataset_train.csv")
         valid.to_csv(f"{self.project_folder}/dataset_validation.csv")
@@ -138,8 +137,8 @@ class Training(object):
         )
 
         gen = DataSetFolderGenerator(self.base.preprocess_input_method())
+        print("Loading Test Image Data Generators")
         generator = gen.generator(
-            "valid",
             self.test_dataset,
             target_size=self.project.file_size,
             batch_size=self.project.batch_size,
@@ -152,9 +151,14 @@ class Training(object):
         predictor.predict(generator)
 
         self.__record_db.save(
+            self.project_folder,
             self.project_folder.split("/")[-1],
             self.base_model_name,
             self.project.architecture,
+            self.project.epochs,
+            self.project.batch_size,
+            self.project.dataset.n_class,
+            self.project.dataset.df.shape[0],
             predictor.accuracy_score(),
             datetime.now().strftime("%Y%m%d%H%M%S"),
         )

@@ -1,5 +1,5 @@
 class EmptyBase:
-    def __init__(self, target_file_size, base_layer_train=0):
+    def __init__(self, target_file_size: tuple, base_layer_train: int = 0):
         pass
 
     def model(self):

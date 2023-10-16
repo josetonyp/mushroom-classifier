@@ -13,20 +13,17 @@ from tensorflow.keras.models import Sequential
 class AchC:
     def __init__(
         self,
-        base_model,
-        output_n_class,
-        optimizer="adam",
-        compile_metrics=["accuracy"],
-        file_size=(254, 254),
+        base_model: object,
+        output_n_class: int,
+        optimizer: str = "adam",
+        compile_metrics: list = ["accuracy"],
     ):
-        self.base_model = None
-        self.compile_optimizer = optimizer
-        self.compile_metrics = compile_metrics
-        self.n_class = output_n_class
-        self.file_size = file_size
+        self.__compile_optimizer = optimizer
+        self.__compile_metrics = compile_metrics
+        self.__n_class = output_n_class
 
     def build(self):
-        self.model = Sequential(
+        model = Sequential(
             [
                 Rescaling(
                     1.0 / 255,
@@ -46,17 +43,14 @@ class AchC:
                 MaxPooling2D(),
                 Flatten(),
                 Dense(128, activation="relu"),
-                Dense(self.n_class, activation="softmax"),
+                Dense(self.__n_class, activation="softmax"),
             ]
         )
 
-        self.model.compile(
-            optimizer=self.compile_optimizer,
+        model.compile(
+            optimizer=self.__compile_optimizer,
             loss=SparseCategoricalCrossentropy(from_logits=False),
-            metrics=self.compile_metrics,
+            metrics=self.__compile_metrics,
         )
 
-        return self.model
-
-    def summary(self):
-        return self.model.summary()
+        return model
