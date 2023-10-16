@@ -2,7 +2,7 @@ from tensorflow.keras.applications.vgg19 import VGG19, preprocess_input
 
 
 class VGG19Base:
-    def __init__(self, target_file_size, base_layer_train=0):
+    def __init__(self, target_file_size: tuple, base_layer_train: int = 0):
         # Build the base model
         self.base_model = VGG19(
             weights="imagenet",

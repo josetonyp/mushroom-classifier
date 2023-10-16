@@ -14,7 +14,6 @@ class Folders:
         output_folder: str,
         project_name: str,
         architecture: str,
-        base_models: list,
     ) -> None:
         self.__output_folder = output_folder
         self.__project_name = project_name
@@ -23,8 +22,12 @@ class Folders:
 
     def build(
         self,
-    ) -> None:
-        """Builds the base folder if not created base on training params"""
+    ) -> Folders:
+        """Builds the base folder if not created base on training params
+
+        Returns:
+          Folders: Instance of Folders
+        """
         if not exists(self.__output_folder):
             makedirs(self.__output_folder)
 

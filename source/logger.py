@@ -2,13 +2,14 @@ import logging
 
 
 class Logger(object):
-    """Creates and configure a training logger
+    """Creates and configure a training logger"""
 
-    Args:
-        object (_type_): _description_
-    """
-
-    def __init__(self, output_report, level=logging.DEBUG, logger_name="cnn"):
+    def __init__(
+        self,
+        output_report: str,
+        level: int = logging.DEBUG,
+        logger_name: str = "cnn",
+    ):
         """
         Initializes a new Logger object.
 
@@ -24,5 +25,8 @@ class Logger(object):
         self.__logger.addHandler(fh)
 
     @property
-    def logger(self):
+    def logger(self) -> logging.Logger:
+        """
+        Returns the logger object associated with this instance.
+        """
         return self.__logger

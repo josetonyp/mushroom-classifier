@@ -11,6 +11,7 @@ class FolderDataset(Base):
 
     def __init__(self, folder: str):
         self.__folder = folder
+        self.__df = None
 
     def load(self):
         """Loads and extracts the image files and labels"""

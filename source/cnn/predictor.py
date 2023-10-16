@@ -102,7 +102,7 @@ class Predictor(object):
             self.generator.labels, self.predictions
         )
 
-        if to_file is None and isinstance(to_file) is str:
+        if to_file is not None and isinstance(to_file, str):
             open(to_file, "w", encoding="utf-8").write(self.class_report)
 
         return self.class_report
@@ -123,7 +123,7 @@ class Predictor(object):
             self.predictions,
         )
 
-        if to_file is not None and isinstance(to_file) is str:
+        if to_file is not None and isinstance(to_file, str):
             text = json.dumps({"matrix": self.cnf_matrix.tolist()})
             open(to_file, "w", encoding="utf-8").write(text)
 
